@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>女书密信 | Nüshu Secret Letter — 3·8 国际妇女节</title>
+    <meta name="description" content="以女书「我」字为核心，探索女性社会地位的千年演变。为你的好友写一封女书密信。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+Nushu&family=Noto+Serif+SC:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="preload" href="fonts/NotoSansNushu-Regular.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Brand Logo in corner -->
+    <header style="position: absolute; top: 30px; left: 40px; z-index: 50; display: flex; align-items: center;">
+        <span
+            style="font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: #E5C07B; letter-spacing: 2px;">Axsis</span>
+    </header>
+
+    <!-- ====== HOMEPAGE: 材质演变主页 ====== -->
+    <main id="homepage" class="active">
+        <!-- Hero: 女书「我」字 -->
+        <section id="hero">
+            <div id="hero-bg-canvas"></div>
+            <div id="nushu-wo-container">
+                <svg id="nushu-wo" viewBox="0 0 400 600" preserveAspectRatio="xMidYMid meet">
+                    <!-- Three material zones clipping the character -->
+                    <defs>
+                        <!-- Silk texture pattern -->
+                        <pattern id="silk-pattern" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                            <rect width="20" height="20" fill="#f5e6d3" />
+                            <line x1="0" y1="0" x2="20" y2="0" stroke="#d4b896" stroke-width="0.5" opacity="0.6" />
+                            <line x1="0" y1="4" x2="20" y2="4" stroke="#c9a87c" stroke-width="0.3" opacity="0.4" />
+                            <line x1="0" y1="8" x2="20" y2="8" stroke="#d4b896" stroke-width="0.5" opacity="0.6" />
+                            <line x1="0" y1="12" x2="20" y2="12" stroke="#c9a87c" stroke-width="0.3" opacity="0.4" />
+                            <line x1="0" y1="16" x2="20" y2="16" stroke="#d4b896" stroke-width="0.5" opacity="0.6" />
+                            <line x1="0" y1="0" x2="0" y2="20" stroke="#bfa06a" stroke-width="0.3" opacity="0.3" />
+                            <line x1="5" y1="0" x2="5" y2="20" stroke="#bfa06a" stroke-width="0.2" opacity="0.2" />
+                            <line x1="10" y1="0" x2="10" y2="20" stroke="#bfa06a" stroke-width="0.3" opacity="0.3" />
+                            <line x1="15" y1="0" x2="15" y2="20" stroke="#bfa06a" stroke-width="0.2" opacity="0.2" />
+                        </pattern>
+                        <!-- Ink gradient -->
+                        <linearGradient id="ink-gradient" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#1a1a2e" />
+                            <stop offset="50%" stop-color="#16213e" />
+                            <stop offset="100%" stop-color="#0f3460" />
+                        </linearGradient>
+                        <!-- Modern fluid gradient -->
+                        <linearGradient id="fluid-gradient" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#667eea" />
+                            <stop offset="30%" stop-color="#764ba2" />
+                            <stop offset="60%" stop-color="#f093fb" />
+                            <stop offset="100%" stop-color="#4facfe" />
+                        </linearGradient>
+                        <!-- Clip for the Nüshu character shape -->
+                        <clipPath id="wo-clip">
+                            <!-- Approximate path for 𛈻 (我 in Nüshu) - a flowing curved character -->
+                            <!-- This is a stylized calligraphic path -->
+                            <path id="wo-path" d="
+                M 200 50 
+                C 180 60, 160 80, 155 110
+                C 150 140, 160 160, 175 180
+                C 185 195, 195 200, 200 210
+                C 205 220, 195 240, 180 260
+                C 165 280, 155 300, 160 320
+                C 165 340, 180 355, 200 360
+                C 220 365, 235 355, 240 340
+                C 245 325, 240 305, 230 290
+                C 220 275, 215 260, 220 245
+                C 225 230, 240 220, 245 200
+                C 250 180, 255 160, 250 140
+                C 245 120, 235 100, 220 80
+                C 210 65, 205 55, 200 50 Z
+                M 170 120
+                C 165 130, 170 145, 180 150
+                L 195 155
+                C 200 145, 195 130, 185 120
+                Z
+                M 210 140
+                C 215 150, 225 155, 230 148
+                C 235 140, 230 128, 220 125
+                C 215 122, 210 130, 210 140 Z
+              " />
+                        </clipPath>
+                    </defs>
+                    <!-- Three material bands with the character shape -->
+                    <g class="material-layers">
+                        <!-- Silk zone (top 1/3) -->
+                        <rect class="material-silk" x="80" y="20" width="240" height="200" fill="url(#silk-pattern)"
+                            clip-path="url(#wo-clip)" />
+                        <!-- Ink zone (middle 1/3) -->
+                        <rect class="material-ink" x="80" y="180" width="240" height="200" fill="url(#ink-gradient)"
+                            clip-path="url(#wo-clip)" />
+                        <!-- Modern fluid zone (bottom 1/3) -->
+                        <rect class="material-fluid" x="80" y="340" width="240" height="200" fill="url(#fluid-gradient)"
+                            clip-path="url(#wo-clip)" />
+                    </g>
+                </svg>
+                <!-- Fallback: render the actual Nüshu character with web font -->
+                <div id="nushu-wo-text">𛈻</div>
+            </div>
+            <p id="hero-subtitle" class="fade-in-up">女书 · 我</p>
+            <p id="hero-desc" class="fade-in-up delay-1">从丝线到墨迹，从墨迹到光流<br>千年女性的声音，织进一个字里</p>
+            <!-- CTA Button on first screen -->
+            <button id="btn-write-letter-hero" class="cta-button fade-in-up delay-2" style="margin-top: 2rem;">
+                <span class="btn-nushu">𛈬𛈻</span>
+                <span class="btn-text">开始写信</span>
+            </button>
+            <div id="scroll-hint" class="fade-in-up delay-2">
+                <span>↓ 向下滑动探索</span>
+            </div>
+        </section>
+
+        <!-- Material Sections: expand on scroll -->
+        <!-- SILK ERA -->
+        <section id="era-silk" class="era-section" data-era="silk">
+            <div class="era-bg era-bg-silk"></div>
+            <div class="era-content">
+                <div class="era-header">
+                    <h2 class="era-title">丝织时代</h2>
+                    <p class="era-subtitle">经纬之间，织出经济独立的第一缕曙光</p>
+                </div>
+                <div class="women-cards">
+                    <article class="woman-card" data-name="huangdaopo">
+                        <div class="card-image" id="img-huangdaopo"></div>
+                        <div class="card-info">
+                            <h3>黄道婆</h3>
+                            <span class="card-era-tag">中国元代</span>
+                            <p>革新棉纺织技术，将搅车、弹弓、纺车三大核心工具进行系统性升级，使手工纺织效率提升数倍。她将崖州黎族的先进纺织技术传播至松江，引发了中国纺织业的产业革命。</p>
+                        </div>
+                    </article>
+                    <article class="woman-card" data-name="garthwaite">
+                        <div class="card-image" id="img-garthwaite"></div>
+                        <div class="card-info">
+                            <h3>安娜·玛丽亚·加思韦特</h3>
+                            <span class="card-era-tag">18世纪英国</span>
+                            <p>Anna Maria Garthwaite —
+                                斯皮塔佛德丝绸设计大师。在男性主导的丝织设计行业中，凭借极具辨识度的花卉自然主义风格，获得超过80项独立图案设计委托，成为英国高端丝织产业的核心创意力量。</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- INK ERA -->
+        <section id="era-ink" class="era-section" data-era="ink">
+            <div class="era-bg era-bg-ink"></div>
+            <div class="era-content">
+                <div class="era-header">
+                    <h2 class="era-title">墨迹时代</h2>
+                    <p class="era-subtitle">笔墨为刃，刺破千年沉默的枷锁</p>
+                </div>
+                <div class="women-cards">
+                    <article class="woman-card" data-name="liqingzhao">
+                        <div class="card-image" id="img-liqingzhao"></div>
+                        <div class="card-info">
+                            <h3>李清照</h3>
+                            <span class="card-era-tag">中国宋代</span>
+                            <p>打破传统女性文学的顺从模式，以极致的情感深度建立女性主体视角的抒情范式。在男性垄断的金石考据领域取得顶尖成就，完成《金石录后序》。</p>
+                        </div>
+                    </article>
+                    <article class="woman-card" data-name="wollstonecraft">
+                        <div class="card-image" id="img-wollstonecraft"></div>
+                        <div class="card-info">
+                            <h3>玛丽·沃斯通克拉夫特</h3>
+                            <span class="card-era-tag">18世纪英国</span>
+                            <p>Mary Wollstonecraft — 撰写《女权辩护》，从理性主义哲学出发系统性驳斥女性先天低劣论，奠定现代女权主义理论基石。"她们必须只向理性的权威低头。"</p>
+                        </div>
+                    </article>
+                    <article class="woman-card" data-name="qiujin">
+                        <div class="card-image" id="img-qiujin"></div>
+                        <div class="card-info">
+                            <h3>秋瑾</h3>
+                            <span class="card-era-tag">近代中国晚清</span>
+                            <p>创办《中国女报》，以白话文唤醒底层女性，将妇女解放与反帝革命深度绑定。以笔为旗，以血祭国，壮烈就义。</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODERN ERA -->
+        <section id="era-modern" class="era-section" data-era="modern">
+            <div class="era-bg era-bg-modern"></div>
+            <div class="era-content">
+                <div class="era-header">
+                    <h2 class="era-title">现代流体时代</h2>
+                    <p class="era-subtitle">分子、射线与电波，女性征服不可见的宇宙</p>
+                </div>
+                <div class="women-cards">
+                    <article class="woman-card" data-name="tuyouyou">
+                        <div class="card-image" id="img-tuyouyou"></div>
+                        <div class="card-info">
+                            <h3>屠呦呦</h3>
+                            <span class="card-era-tag">当代中国</span>
+                            <p>首创低温乙醚青蒿素提取法，终结全球对传统抗疟药的依赖，挽救数百万生命。首位获诺贝尔奖的中国本土科学家。</p>
+                        </div>
+                    </article>
+                    <article class="woman-card" data-name="curie">
+                        <div class="card-image" id="img-curie"></div>
+                        <div class="card-info">
+                            <h3>玛丽·居里</h3>
+                            <span class="card-era-tag">19-20世纪波兰/法国</span>
+                            <p>Marie Curie — 发现钋与镭，创造"放射性"概念，奠定原子物理学基础。史上唯一在物理学与化学两个不同领域均获诺贝尔奖的科学家。</p>
+                        </div>
+                    </article>
+                    <article class="woman-card" data-name="lamarr">
+                        <div class="card-image" id="img-lamarr"></div>
+                        <div class="card-info">
+                            <h3>海蒂·拉玛</h3>
+                            <span class="card-era-tag">20世纪美国</span>
+                            <p>Hedy Lamarr — 好莱坞巨星与跳频扩频技术 (FHSS) 发明者。她的专利成为现代 Wi-Fi、蓝牙及 GPS 底层通信架构的技术基石，被称为"Wi-Fi 之母"。
+                            </p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA: Write a letter -->
+        <section id="cta-section">
+            <div class="cta-content">
+                <h2>为她写一封女书密信</h2>
+                <p>用千年秘密文字，传递只属于你们的心意</p>
+                <button id="btn-write-letter" class="cta-button">
+                    <span class="btn-nushu">𛈬𛈻</span>
+                    <span class="btn-text">开始写信</span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- ====== LETTER PAGE: 女书密信 ====== -->
+    <main id="letter-page">
+        <button id="btn-back-home" class="back-button">← 返回</button>
+
+        <div id="letter-workspace">
+            <!-- Left: Input -->
+            <div id="letter-input-panel">
+                <h2>写一封密信</h2>
+                <p class="input-hint">
+                    输入汉字，自动转码为古老的女书文字<br>
+                    <span
+                        style="font-size: 0.85em; opacity: 0.8; line-height: 1.4; display: inline-block; margin-top: 6px;">
+                        (注：女书流传久远，部分现代生僻字可能并无传记。如有某些字无法显示，不妨换一种古人也会说的相近表达试试看哦。)
+                    </span>
+                </p>
+                <textarea id="letter-input" placeholder="在此输入你想说的话..." maxlength="40"></textarea>
+                <div class="input-controls">
+                    <div id="char-count"><span id="current-count">0</span>/<span id="max-count">40</span></div>
+                    <div class="font-size-controls">
+                        <label><input type="radio" name="font-size" value="1.6rem" data-max="80"> 小字</label>
+                        <label><input type="radio" name="font-size" value="2.2rem" data-max="40" checked> 中字</label>
+                        <label><input type="radio" name="font-size" value="2.8rem" data-max="20"> 大字</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Card Preview -->
+            <div id="letter-preview-panel">
+                <div id="letter-card-container">
+                    <div id="letter-card" class="card-face-front">
+                        <!-- Front Face -->
+                        <div id="card-front" class="card-face">
+                            <div class="card-ornament ornament-tl"></div>
+                            <div class="card-ornament ornament-tr"></div>
+                            <div class="card-ornament ornament-bl"></div>
+                            <div class="card-ornament ornament-br"></div>
+                            <div id="octagon-bg"></div>
+                            <div id="card-nushu-text"></div>
+                            <!-- Shadow layer for flashlight decryption -->
+                            <div id="shadow-layer" class="hidden"></div>
+                        </div>
+                        <!-- Back Face -->
+                        <div id="card-back" class="card-face">
+                            <div id="card-back-design">
+                                <div class="back-nushu-char">𛈻</div>
+                                <p class="back-label">女书 · 我</p>
+                                <p class="back-date"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Flashlight/Candle Icon & Explanation (Moved outside the card) -->
+                <div id="candle-container">
+                    <div id="candle-icon" title="点击蜡烛，明火照亮密信">
+                        <svg viewBox="0 0 24 24" class="torch-svg" fill="none">
+                            <!-- Candle stick -->
+                            <rect x="9" y="10" width="6" height="12" fill="none" stroke="currentColor"
+                                stroke-width="1.5" />
+                            <!-- Dripping wax -->
+                            <path d="M10 10 L10 14 Q10.5 15 11 14 L11 10" fill="currentColor" />
+                            <!-- Wick -->
+                            <line x1="12" y1="10" x2="12" y2="8" stroke="currentColor" stroke-width="1.5" />
+                            <!-- Flame -->
+                            <path d="M12 2 C10 4 10 6 12 8 C14 6 14 4 12 2 Z" fill="currentColor" stroke="currentColor"
+                                stroke-width="0.5" />
+                        </svg>
+                    </div>
+                    <p class="candle-hint">点燃烛火<br>解密古字</p>
+                </div>
+
+                <div id="card-actions">
+                    <button id="btn-flip" class="action-btn">🔄 翻转卡片</button>
+                    <button id="btn-save" class="action-btn primary">💾 保存图片</button>
+                    <button id="btn-share" class="action-btn primary">🔗 复制分享链接</button>
+                </div>
+
+                <!-- View Mode CTAs -->
+                <div id="view-mode-actions" class="hidden">
+                    <button id="btn-write-own" class="action-btn cta-large">✍️ 我也要写密信</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Candlelight backdrop -->
+        <div id="candlelight-backdrop" class="hidden"></div>
+        <!-- Candlelight overlay -->
+        <div id="candlelight-overlay" class="hidden">
+            <div id="candle-cursor"></div>
+            <button id="btn-exit-candle" class="exit-candle-btn">✕ 退出烛光模式</button>
+        </div>
+    </main>
+
+    <script src="js/nushu-map.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/letter.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</body>
+
+</html>

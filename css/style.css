@@ -47,6 +47,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'LiuyeTi';
+  src: url('../fonts/LiuyeTi.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ====== RESET & BASE ====== */
 *,
 *::before,
@@ -1062,37 +1070,175 @@ header,
     grid-template-columns: 1fr;
   }
 
+  /* Letter page: stack vertically */
+  #letter-page {
+    padding: 1rem 0.75rem;
+  }
+
   #letter-workspace {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
+    max-width: 100%;
+    padding: 0;
   }
 
   #letter-input-panel {
-    padding: 1rem;
+    padding: 0.75rem;
+    order: 1;
+  }
+
+  #letter-input-panel h2 {
+    font-size: 1.4rem;
+  }
+
+  .input-hint {
+    font-size: 0.8rem;
   }
 
   #letter-input {
-    height: 150px;
+    height: 120px;
+    font-size: 0.95rem;
+    padding: 1rem;
+  }
+
+  .input-controls {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .font-size-controls {
+    gap: 0.5rem;
+  }
+
+  .font-size-controls label {
+    font-size: 0.8rem;
+  }
+
+  /* Card preview: scale down using transform to preserve internal layout */
+  #letter-preview-panel {
+    order: 2;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: visible;
   }
 
   #letter-card-container {
-    width: 320px;
-    height: 460px;
+    width: 380px;
+    height: 540px;
+    transform: scale(0.82);
+    transform-origin: top center;
     margin: 0 auto;
+    /* Reduce the visual gap caused by scaling */
+    margin-bottom: -90px;
+  }
+
+  #letter-card {
+    width: 380px;
+    height: 540px;
+  }
+
+  .card-face {
+    width: 380px;
+    height: 540px;
+  }
+
+  /* Candle container: reposition below card on mobile */
+  #candle-container {
+    position: relative;
+    top: auto;
+    right: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 0.5rem;
+    order: 3;
+  }
+
+  .candle-hint {
+    text-align: left;
+  }
+
+  /* Card actions: wrap on mobile */
+  #card-actions {
+    order: 4;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .action-btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
   }
 
   .cta-content h2 {
     font-size: 1.6rem;
   }
 
-  #candle-container {
-    right: 15px;
-    top: -50px;
-    flex-direction: row;
-    align-items: center;
+  /* CTA buttons on mobile */
+  .cta-button {
+    padding: 0.8rem 1.8rem;
+    font-size: 1rem;
   }
 
-  .candle-hint {
-    text-align: left;
+  /* Back button */
+  .back-button {
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+  }
+
+  /* Brand logo */
+  header {
+    top: 15px !important;
+    left: 20px !important;
+  }
+
+  header span {
+    font-size: 1.2rem !important;
+  }
+
+  /* Era sections */
+  .era-section {
+    padding: 3rem 1rem;
+  }
+
+  .card-info {
+    padding: 1rem;
+  }
+
+  .card-info h3 {
+    font-size: 1.1rem;
+  }
+
+  .card-info p {
+    font-size: 0.85rem;
+  }
+}
+
+/* Very small screens (< 400px) */
+@media (max-width: 400px) {
+  #nushu-wo-text {
+    font-size: 120px;
+  }
+
+  #letter-card-container {
+    transform: scale(0.7);
+    margin-bottom: -150px;
+  }
+
+  #letter-input-panel h2 {
+    font-size: 1.2rem;
+  }
+
+  .era-title {
+    font-size: 1.4rem;
+  }
+
+  .cta-content h2 {
+    font-size: 1.3rem;
   }
 }

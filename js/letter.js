@@ -45,10 +45,18 @@ document.addEventListener('DOMContentLoaded', () => {
             currentChineseText = decodedChinese;
             const nushuStr = typeof toNushu === 'function' ? toNushu(decodedChinese) : decodedChinese;
             cardNushuText.innerHTML = '';
-            if (nushuStr && nushuStr.length > 0) {
-                for (const char of nushuStr) {
+            if (decodedChinese && decodedChinese.length > 0) {
+                for (let i = 0; i < decodedChinese.length; i++) {
+                    const origChar = decodedChinese[i];
+                    const hasMapped = typeof hasNushuMapping === 'function' && hasNushuMapping(origChar);
                     const s = document.createElement('span');
-                    s.textContent = char;
+                    if (hasMapped) {
+                        s.textContent = typeof toNushu === 'function' ? toNushu(origChar) : origChar;
+                    } else {
+                        // No Nüshu mapping — use Liuye calligraphy font
+                        s.textContent = origChar;
+                        s.style.fontFamily = "'LiuyeTi', serif";
+                    }
                     cardNushuText.appendChild(s);
                 }
             }
@@ -95,15 +103,20 @@ document.addEventListener('DOMContentLoaded', () => {
         currentChineseText = text;
         currentCount.textContent = text.length;
 
-        // Convert to Nüshu
-        const nushuText = typeof toNushu === 'function' ? toNushu(text) : text;
-        cardNushuText.innerHTML = ''; // Start empty
+        cardNushuText.innerHTML = '';
 
-        // Loop over text only if it has content, no default fallbacks anymore
-        if (nushuText && nushuText.length > 0) {
-            for (const char of nushuText) {
+        if (text && text.length > 0) {
+            for (let i = 0; i < text.length; i++) {
+                const origChar = text[i];
+                const hasMapped = typeof hasNushuMapping === 'function' && hasNushuMapping(origChar);
                 const s = document.createElement('span');
-                s.textContent = char;
+                if (hasMapped) {
+                    s.textContent = typeof toNushu === 'function' ? toNushu(origChar) : origChar;
+                } else {
+                    // No Nüshu mapping — use Liuye calligraphy font
+                    s.textContent = origChar;
+                    s.style.fontFamily = "'LiuyeTi', serif";
+                }
                 cardNushuText.appendChild(s);
             }
         }
@@ -194,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = currentChineseText || "书我";
         const nushuSpans = Array.from(document.querySelectorAll('#card-nushu-text span'));
 
-        // Create shadow characters
+        // Create shadow characters — one Chinese char per Nüshu span
         nushuSpans.forEach((span, i) => {
             const shadowChar = document.createElement('span');
             shadowChar.className = 'shadow-char';
@@ -205,9 +218,10 @@ document.addEventListener('DOMContentLoaded', () => {
         font-size: 0;
         color: rgba(60, 40, 20, 0);
         pointer-events: none;
-        transition: font-size 0.3s ease, color 0.3s ease;
+        transition: font-size 0.15s ease, color 0.15s ease;
         transform: translate(-50%, -50%);
         text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        white-space: nowrap;
       `;
             shadowChar.dataset.index = i;
             shadowLayer.appendChild(shadowChar);
@@ -220,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cardFront = document.getElementById('card-front');
         const cardRect = cardFront.getBoundingClientRect();
 
-        const maxDist = 100; // Reduce light range to only reveal nearby characters
+        const maxDist = 120; // Light reveal radius
 
         // Ensure shadow wrapper has size
         shadowLayer.style.width = '100%';
@@ -232,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const spanEl = nushuSpans[i];
             if (!spanEl) return;
 
-            // Get actual on-screen location of the Nushu character
+            // Get actual on-screen location of the Nüshu character
             const spanRect = spanEl.getBoundingClientRect();
 
             // Center point of the actual character
@@ -248,34 +262,49 @@ document.addEventListener('DOMContentLoaded', () => {
             const dy = screenBaseY - mouseY;
             const dist = Math.sqrt(dx * dx + dy * dy);
 
-            // 调节影像虚实的参数：
-            // 1. proximity：控制透明度（浓度）。这里提升了整体系数，影子会更浓。
-            // 2. blurRadius：控制边缘模糊度。这里分母改大了（从 dist/20 改到了 dist/40），影子会更实。
+            // Proximity: how "lit" this character is (1 = right under candle, 0 = out of range)
             let proximity = Math.max(0, 1 - (dist / maxDist));
-            proximity = Math.pow(proximity, 1.5);
+            proximity = Math.pow(proximity, 1.2);
 
-            // Shadow offset: cast AWAY from the light source
-            const stretchFactor = 0.1 + (dist / 1000); // 缩小拉伸程度
+            // Shadow offset: very small, cast away from the light (like a real shadow)
+            const stretchFactor = 0.03 + (dist / 3000);
             const shadowOffsetX = dx * stretchFactor;
             const shadowOffsetY = dy * stretchFactor;
 
-            // final position is base + offset
+            // Final position stays very close to the original character
             const finalX = baseX + shadowOffsetX;
             const finalY = baseY + shadowOffsetY;
 
             shadowChar.style.left = finalX + 'px';
             shadowChar.style.top = finalY + 'px';
 
-            // Size, Blur and opacity based on proximity AND distance
-            const fontSize = 18 + (dist * 0.05);
-            const opacity = proximity * 0.95; // 浓度提高到0.95，更加实
-            const blurRadius = Math.max(1, dist / 40); // 虚化幅度减半，更加锐利
+            // Font size matches the Nüshu character size for proper overlap
+            const nushuFontSize = parseFloat(getComputedStyle(spanEl).fontSize) || 24;
+            const fontSize = nushuFontSize * 0.85;
+            const opacity = proximity * 0.9;
+            const blurRadius = Math.max(0.5, dist / 60);
 
             shadowChar.style.fontSize = fontSize + 'px';
-            shadowChar.style.color = `rgba(15, 20, 30, 0)`; // Hide text color, rely on text-shadow blur
-            // Set shadow to a glowing amber color: rgba(230, 150, 50)
+            shadowChar.style.color = `rgba(15, 20, 30, 0)`;
             shadowChar.style.textShadow = `0 0 ${blurRadius}px rgba(230, 150, 50, ${opacity})`;
         });
+    }
+
+    // ---- Helper: Convert local font file to base64 data URL ----
+    async function fontToBase64(url) {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        } catch (e) {
+            console.warn('Failed to load font for embedding:', e);
+            return null;
+        }
     }
 
     // ---- Save Card as Image ----
@@ -291,26 +320,72 @@ document.addEventListener('DOMContentLoaded', () => {
             // Use html2canvas if available
             if (typeof html2canvas !== 'undefined') {
                 const cardFront = document.getElementById('card-front');
+
+                // Wait for all fonts to be ready
+                if (document.fonts && document.fonts.ready) {
+                    await document.fonts.ready;
+                }
+
+                // Embed the Nüshu fonts as base64 so html2canvas can use them
+                const fontUrls = [
+                    { url: 'fonts/NotoSansNushu-Regular.ttf', family: 'NotoSansNushu', format: 'truetype' },
+                    { url: 'fonts/Nyushu.ttf', family: 'Nyushu', format: 'truetype' },
+                    { url: 'fonts/NyushuSans.otf', family: 'NyushuSans', format: 'opentype' },
+                    { url: 'fonts/LiuyeTi.ttf', family: 'LiuyeTi', format: 'truetype' }
+                ];
+
+                let fontCssText = '';
+                for (const f of fontUrls) {
+                    const dataUrl = await fontToBase64(f.url);
+                    if (dataUrl) {
+                        fontCssText += `
+                            @font-face {
+                                font-family: '${f.family}';
+                                src: url('${dataUrl}') format('${f.format}');
+                                font-weight: normal;
+                                font-style: normal;
+                            }
+                        `;
+                    }
+                }
+
+                // Inject temporary embedded font style
+                const tempStyle = document.createElement('style');
+                tempStyle.textContent = fontCssText;
+                document.head.appendChild(tempStyle);
+
+                // Small delay to let browser register the embedded fonts
+                await new Promise(r => setTimeout(r, 200));
+
                 const canvas = await html2canvas(cardFront, {
-                    backgroundColor: '#1f2d47',
+                    backgroundColor: '#2b3e61',
                     scale: 2,
                     useCORS: true,
-                    logging: false
+                    logging: false,
+                    allowTaint: false,
+                    onclone: (clonedDoc) => {
+                        // Inject the font CSS into the cloned document too
+                        const clonedStyle = clonedDoc.createElement('style');
+                        clonedStyle.textContent = fontCssText;
+                        clonedDoc.head.appendChild(clonedStyle);
+                    }
                 });
 
+                // Remove temporary style
+                document.head.removeChild(tempStyle);
+
                 // Start sharing card creation
-                const scale = 2; // Match html2canvas scale
+                const scale = 2;
                 const padding = 60 * scale;
                 const footerHeight = 140 * scale;
 
                 const shareCanvas = document.createElement('canvas');
                 const ctx = shareCanvas.getContext('2d');
 
-                // Canvas dimensions
                 shareCanvas.width = canvas.width + (padding * 2);
                 shareCanvas.height = canvas.height + padding + padding + footerHeight;
 
-                // 1. Draw Background (Deep blue matched to app theme)
+                // 1. Draw Background
                 ctx.fillStyle = '#0f172a';
                 ctx.fillRect(0, 0, shareCanvas.width, shareCanvas.height - footerHeight);
 
@@ -320,14 +395,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.shadowOffsetY = 20 * scale;
                 ctx.drawImage(canvas, padding, padding);
 
-                // Reset shadow
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
                 ctx.shadowOffsetY = 0;
 
                 // 3. Draw Footer Background
                 const footerY = shareCanvas.height - footerHeight;
-                ctx.fillStyle = '#f4f4f5'; // Light gray footer
+                ctx.fillStyle = '#f4f4f5';
                 ctx.fillRect(0, footerY, shareCanvas.width, footerHeight);
 
                 // 4. Generate & Draw QR Code
@@ -345,7 +419,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
                     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(shareUrl)}`;
-                    // Fetch the image as a blob to avoid CORS canvas tainting
                     const response = await fetch(qrUrl);
                     const blob = await response.blob();
                     const objectUrl = URL.createObjectURL(blob);
@@ -361,25 +434,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     URL.revokeObjectURL(objectUrl);
                 } catch (e) {
                     console.warn("Could not draw QR code due to network/CORS issue", e);
-                    // Let it continue with no QR code instead of breaking the whole download
                 }
 
-                // 5. Draw Hint Text
+                // 5. Draw Hint Text （可修改：下方提示文字）
                 ctx.fillStyle = '#3f3f46';
                 ctx.font = `${18 * scale}px 'Noto Serif SC', serif, sans-serif`;
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'middle';
                 ctx.fillText("扫码生成专属女书密信", qrX + qrSize + 24 * scale, footerY + footerHeight / 2);
 
-                // 6. Draw Brand Name "Axsis"
-                ctx.fillStyle = '#94a3b8';
-                ctx.font = `bold ${28 * scale}px 'Playfair Display', serif, sans-serif`;
-                ctx.textAlign = 'right';
-                ctx.fillText("Axsis", shareCanvas.width - padding, footerY + footerHeight / 2);
+                // 6. Brand name removed
 
                 // 7. Download Final Image
                 const link = document.createElement('a');
-                link.download = `Axsis-Nushu-Letter-${Date.now()}.jpg`;
+                link.download = `Nushu-Letter-${Date.now()}.jpg`;
                 link.href = shareCanvas.toDataURL('image/jpeg', 0.95);
                 link.click();
             } else {

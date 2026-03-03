@@ -760,11 +760,12 @@ main.active {
   transform: scaleY(-1);
 }
 
-/* Knot corner */
+/* Knot corner (Replaced with flipped flower due to bg color mismatch) */
 .ornament-br {
   bottom: -5px;
   right: -5px;
-  background-image: url('../images/corner-knot.png');
+  background-image: url('../images/corner-flower.png');
+  transform: scale(-1, -1);
 }
 
 /* Octagon flower pattern background */
@@ -802,9 +803,14 @@ main.active {
   left: 52%;
   /* 整体向右平移（之前是 54%，现在向左收回两格） */
   transform: translate(-50%, -50%);
-  letter-spacing: 1.3em;
-  /* 增大字与字的空隙到 1.3 倍 */
+  letter-spacing: 0;
+  /* 取消 letter-spacing 采用 span margin 防止移动端对生僻字的间距失效导致堆叠 */
   word-break: break-all;
+}
+
+#card-nushu-text span {
+  display: inline-block;
+  margin-bottom: 1.3em;
 }
 
 /* Flashlight container */
@@ -1177,11 +1183,19 @@ header,
   }
 
   /* ===== Card text on mobile: reduce spacing to prevent overlap ===== */
+  /* Card text on mobile: MUST use !important to override desktop defaults */
   #card-nushu-text {
-    letter-spacing: 0.8em;
-    line-height: 1.5;
-    font-size: 1.8rem;
-    padding: 3rem 0.5rem 0.5rem 1rem;
+    letter-spacing: 0 !important;
+    line-height: 1.6 !important;
+    font-size: 1.6rem !important;
+    padding: 2.5rem 0.5rem 0.5rem 1rem !important;
+    width: 90% !important;
+    height: 85% !important;
+  }
+
+  #card-nushu-text span {
+    display: inline-block;
+    margin-bottom: 1.2em !important;
   }
 
   /* Candle container: reposition below card on mobile */
@@ -1259,10 +1273,14 @@ header,
   }
 
   #card-nushu-text {
-    letter-spacing: 0.6em;
+    letter-spacing: 0 !important;
     line-height: 1.4;
     font-size: 1.6rem;
     padding: 2.5rem 0.5rem 0.5rem 0.8rem;
+  }
+
+  #card-nushu-text span {
+    margin-bottom: 0.6em !important;
   }
 
   .era-title {

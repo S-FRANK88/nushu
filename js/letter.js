@@ -177,28 +177,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Track mouse for candlelight cursor
-    document.addEventListener('mousemove', (e) => {
+    // Track mouse or touch for candlelight cursor
+    function handlePointerMove(clientX, clientY) {
         if (!candleActive) return;
-        candleCursor.style.left = e.clientX + 'px';
-        candleCursor.style.top = e.clientY + 'px';
+        candleCursor.style.left = clientX + 'px';
+        candleCursor.style.top = clientY + 'px';
 
         const cardFront = document.getElementById('card-front');
         const cardRect = cardFront.getBoundingClientRect();
 
         // Calculate light position relative to the card for the CSS mask
-        const relativeX = e.clientX - cardRect.left;
-        const relativeY = e.clientY - cardRect.top;
+        // Correctly handling the scale
+        const scaleX = cardRect.width / cardFront.offsetWidth;
+        const scaleY = cardRect.height / cardFront.offsetHeight;
+
+        const relativeX = (clientX - cardRect.left) / scaleX;
+        const relativeY = (clientY - cardRect.top) / scaleY;
         cardFront.style.setProperty('--light-x', `${relativeX}px`);
         cardFront.style.setProperty('--light-y', `${relativeY}px`);
 
         // Update full screen overlay mask position
-        candlelightOverlay.style.setProperty('--mouse-x', `${e.clientX}px`);
-        candlelightOverlay.style.setProperty('--mouse-y', `${e.clientY}px`);
+        candlelightOverlay.style.setProperty('--mouse-x', `${clientX}px`);
+        candlelightOverlay.style.setProperty('--mouse-y', `${clientY}px`);
 
         // Update shadow positions based on candle position
-        updateShadows(e.clientX, e.clientY);
+        updateShadows(clientX, clientY, scaleX, scaleY);
+    }
+
+    document.addEventListener('mousemove', (e) => {
+        handlePointerMove(e.clientX, e.clientY);
     });
+
+    document.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+            handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    document.addEventListener('touchstart', (e) => {
+        if (candleActive && e.touches.length > 0) {
+            handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
 
     function buildShadowMap() {
         shadowLayer.classList.remove('hidden');
@@ -230,11 +250,11 @@ document.addEventListener('DOMContentLoaded', () => {
         nushuChars = Array.from(shadowLayer.children);
     }
 
-    function updateShadows(mouseX, mouseY) {
+    function updateShadows(mouseX, mouseY, scaleX = 1, scaleY = 1) {
         const cardFront = document.getElementById('card-front');
         const cardRect = cardFront.getBoundingClientRect();
 
-        const maxDist = 120; // Light reveal radius
+        const maxDist = 120 * Math.max(scaleX, scaleY); // Light reveal radius scaled
 
         // Ensure shadow wrapper has size
         shadowLayer.style.width = '100%';
@@ -253,11 +273,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const screenBaseX = spanRect.left + spanRect.width / 2;
             const screenBaseY = spanRect.top + spanRect.height / 2;
 
-            // Position relative to the card container
-            const baseX = screenBaseX - cardRect.left;
-            const baseY = screenBaseY - cardRect.top;
+            // Position relative to the card container, unscaled
+            const baseX = (screenBaseX - cardRect.left) / scaleX;
+            const baseY = (screenBaseY - cardRect.top) / scaleY;
 
-            // Distance from mouse to the character
+            // Distance from mouse to the character (on screen)
             const dx = screenBaseX - mouseX;
             const dy = screenBaseY - mouseY;
             const dist = Math.sqrt(dx * dx + dy * dy);
@@ -268,8 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Shadow offset: very small, cast away from the light (like a real shadow)
             const stretchFactor = 0.03 + (dist / 3000);
-            const shadowOffsetX = dx * stretchFactor;
-            const shadowOffsetY = dy * stretchFactor;
+            const shadowOffsetX = (dx * stretchFactor) / scaleX;
+            const shadowOffsetY = (dy * stretchFactor) / scaleY;
 
             // Final position stays very close to the original character
             const finalX = baseX + shadowOffsetX;
@@ -317,8 +337,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Use html2canvas if available
-            if (typeof html2canvas !== 'undefined') {
+            // Use htmlToImage if available
+            if (typeof htmlToImage !== 'undefined') {
                 const cardFront = document.getElementById('card-front');
 
                 // Wait for all fonts to be ready
@@ -357,18 +377,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Small delay to let browser register the embedded fonts
                 await new Promise(r => setTimeout(r, 200));
 
-                const canvas = await html2canvas(cardFront, {
+                const canvas = await htmlToImage.toCanvas(cardFront, {
                     backgroundColor: '#2b3e61',
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    allowTaint: false,
-                    onclone: (clonedDoc) => {
-                        // Inject the font CSS into the cloned document too
-                        const clonedStyle = clonedDoc.createElement('style');
-                        clonedStyle.textContent = fontCssText;
-                        clonedDoc.head.appendChild(clonedStyle);
-                    }
+                    pixelRatio: 2
                 });
 
                 // Remove temporary style

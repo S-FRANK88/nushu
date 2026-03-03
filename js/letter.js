@@ -104,25 +104,49 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = window.location.pathname; // Reload without query params
     });
 
-    // ---- Font Size Controls ----
+    // ---- Font Size Controls & Dynamic Character Limits ----
     const fontSizeRadios = document.querySelectorAll('input[name="font-size"]');
     const maxCountSpan = document.getElementById('max-count');
 
-    fontSizeRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            cardNushuText.style.fontSize = e.target.value;
-            const newMax = e.target.getAttribute('data-max');
-            if (newMax) {
-                letterInput.maxLength = newMax;
-                maxCountSpan.textContent = newMax;
-                // Trim existing text if it exceeds the new limit
-                if (letterInput.value.length > newMax) {
-                    letterInput.value = letterInput.value.substring(0, newMax);
-                    letterInput.dispatchEvent(new Event('input')); // Trigger update
-                }
+    function updateMaxCount() {
+        const checkedRadio = document.querySelector('input[name="font-size"]:checked');
+        if (!checkedRadio) return;
+
+        cardNushuText.style.fontSize = checkedRadio.value;
+        const fontSizeVal = checkedRadio.value;
+        let newMax = parseInt(checkedRadio.getAttribute('data-max'));
+
+        // Mobile layout allows fewer words per column due to container shape & spacing adjustments
+        if (window.innerWidth <= 768) {
+            if (fontSizeVal === '1.6rem') newMax = 42;
+            else if (fontSizeVal === '2.2rem') newMax = 28;
+            else if (fontSizeVal === '2.8rem') newMax = 16;
+        } else {
+            // Desktop safe limits
+            if (fontSizeVal === '1.6rem') newMax = 80;
+            else if (fontSizeVal === '2.2rem') newMax = 44;
+            else if (fontSizeVal === '2.8rem') newMax = 24;
+        }
+
+        if (newMax) {
+            letterInput.maxLength = newMax;
+            maxCountSpan.textContent = newMax;
+            // Trim existing text if it exceeds the new limit
+            if (letterInput.value.length > newMax) {
+                letterInput.value = letterInput.value.substring(0, newMax);
+                letterInput.dispatchEvent(new Event('input')); // Trigger update
             }
-        });
+        }
+    }
+
+    fontSizeRadios.forEach(radio => {
+        radio.addEventListener('change', updateMaxCount);
     });
+
+    window.addEventListener('resize', updateMaxCount);
+
+    // Initialize
+    updateMaxCount();
 
     letterInput.addEventListener('input', () => {
         const text = letterInput.value;
@@ -358,23 +382,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ---- Helper: Convert local font file to base64 data URL ----
-    async function fontToBase64(url) {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
-        } catch (e) {
-            console.warn('Failed to load font for embedding:', e);
-            return null;
-        }
-    }
-
     // ---- Save Card as Image ----
     btnSave.addEventListener('click', async () => {
         // Make sure card is showing front
@@ -385,8 +392,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Use htmlToImage if available
-            if (typeof htmlToImage !== 'undefined') {
+            // Use html2canvas if available
+            if (typeof html2canvas !== 'undefined') {
                 const cardFront = document.getElementById('card-front');
 
                 // Wait for all fonts to be ready
@@ -394,45 +401,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     await document.fonts.ready;
                 }
 
-                // Embed the Nüshu fonts as base64 so html2canvas can use them
-                const fontUrls = [
-                    { url: 'fonts/NotoSansNushu-Regular.ttf', family: 'NotoSansNushu', format: 'truetype' },
-                    { url: 'fonts/Nyushu.ttf', family: 'Nyushu', format: 'truetype' },
-                    { url: 'fonts/NyushuSans.otf', family: 'NyushuSans', format: 'opentype' },
-                    { url: 'fonts/LiuyeTi.ttf', family: 'LiuyeTi', format: 'truetype' }
-                ];
-
-                let fontCssText = '';
-                for (const f of fontUrls) {
-                    const dataUrl = await fontToBase64(f.url);
-                    if (dataUrl) {
-                        fontCssText += `
-                            @font-face {
-                                font-family: '${f.family}';
-                                src: url('${dataUrl}') format('${f.format}');
-                                font-weight: normal;
-                                font-style: normal;
-                            }
-                        `;
-                    }
-                }
-
-                // Inject temporary embedded font style
-                const tempStyle = document.createElement('style');
-                tempStyle.textContent = fontCssText;
-                document.head.appendChild(tempStyle);
-
-                // Small delay to let browser register the embedded fonts
-                await new Promise(r => setTimeout(r, 200));
-
-                const canvas = await htmlToImage.toCanvas(cardFront, {
+                const canvas = await html2canvas(cardFront, {
                     backgroundColor: '#2b3e61',
-                    pixelRatio: 2,
-                    fontEmbedCss: fontCssText
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    allowTaint: false
                 });
-
-                // Remove temporary style
-                document.head.removeChild(tempStyle);
 
                 // Start sharing card creation
                 const scale = 2;

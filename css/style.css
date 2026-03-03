@@ -788,13 +788,13 @@ main.active {
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   text-align: left;
   /* 垂直排版时，left 等同于顶端对齐 */
-  padding: 4.5rem 0.5rem 0.5rem 1.5rem;
-  /* 上方留白增多，下方留白减少，右侧留白减少以配合平移 */
+  padding: 6.5rem 0.5rem 0rem 1.0rem;
+  /* 上方留白大幅增多从而向下平移，下方取消留白，右侧微调 */
   line-height: 1.8;
   /* 显著减小列间距 */
   writing-mode: vertical-rl;
   text-orientation: upright;
-  height: 90%;
+  height: 95%;
   width: 85%;
   overflow: hidden;
   z-index: 3;

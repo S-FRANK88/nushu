@@ -727,11 +727,11 @@ main.active {
   justify-content: center;
 }
 
-/* Card Ornaments — embroidered peach blossom + Chinese knot */
+/* Card Ornaments — embroidered peach blossom corners */
 .card-ornament {
   position: absolute;
-  width: 150px;
-  height: 150px;
+  width: 140px;
+  height: 140px;
   z-index: 2;
   pointer-events: none;
   background-size: cover;
@@ -739,31 +739,30 @@ main.active {
   mix-blend-mode: multiply;
 }
 
-/* Flower corners */
+/* Flower corners — positioned INSIDE the card boundary to avoid html2canvas clipping */
 .ornament-tl {
-  top: -5px;
-  left: -5px;
+  top: 0;
+  left: 0;
   background-image: url('../images/corner-flower.png');
 }
 
 .ornament-tr {
-  top: -5px;
-  right: -5px;
+  top: 0;
+  right: 0;
   background-image: url('../images/corner-flower.png');
   transform: scaleX(-1);
 }
 
 .ornament-bl {
-  bottom: -5px;
-  left: -5px;
+  bottom: 0;
+  left: 0;
   background-image: url('../images/corner-flower.png');
   transform: scaleY(-1);
 }
 
-/* Knot corner (Replaced with flipped flower due to bg color mismatch) */
 .ornament-br {
-  bottom: -5px;
-  right: -5px;
+  bottom: 0;
+  right: 0;
   background-image: url('../images/corner-flower.png');
   transform: scale(-1, -1);
 }
@@ -786,31 +785,42 @@ main.active {
   font-size: 2.2rem;
   color: #fcefdc;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  text-align: left;
-  /* 垂直排版时，left 等同于顶端对齐 */
-  padding: 6.5rem 0.5rem 0rem 1.0rem;
-  /* 上方留白大幅增多从而向下平移，下方取消留白，右侧微调 */
-  line-height: 1.8;
-  /* 显著减小列间距 */
-  writing-mode: vertical-rl;
-  text-orientation: upright;
-  height: 95%;
-  width: 85%;
+
+  /* === CSS Grid 方格布局 — 取代 writing-mode vertical === */
+  display: grid;
+  direction: rtl;
+  /* 列从右向左排布 */
+  grid-auto-flow: column;
+  /* 先填满一列再换下一列 */
+  grid-template-rows: repeat(auto-fill, 1.4em);
+  /* 每行高度 = 1.4em */
+  grid-auto-columns: 1.4em;
+  /* 每列宽度 = 1.4em */
+  gap: 0.15em;
+  /* 统一间隙 */
+  align-items: center;
+  justify-items: center;
+
+  /* 定位 */
+  padding: 2.8rem 1.2rem 1.2rem 1.2rem;
+  height: 92%;
+  width: 90%;
   overflow: hidden;
   z-index: 3;
   position: absolute;
   top: 50%;
-  left: 52%;
-  /* 整体向右平移（之前是 54%，现在向左收回两格） */
+  left: 50%;
   transform: translate(-50%, -50%);
-  letter-spacing: 0;
-  /* 取消 letter-spacing 采用 span margin 防止移动端对生僻字的间距失效导致堆叠 */
-  word-break: break-all;
 }
 
 #card-nushu-text span {
-  display: inline-block;
-  margin-bottom: 2em;
+  direction: ltr;
+  /* 单个字符恢复正常方向 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
 }
 
 /* Flashlight container */
@@ -1182,20 +1192,20 @@ header,
     height: 540px;
   }
 
-  /* ===== Card text on mobile: reduce spacing to prevent overlap ===== */
-  /* Card text on mobile: MUST use !important to override desktop defaults */
+  /* ===== Card text on mobile: grid approach — override desktop values ===== */
   #card-nushu-text {
-    letter-spacing: 0 !important;
-    line-height: 1.6 !important;
     font-size: 1.6rem !important;
-    padding: 2.5rem 0.5rem 0.5rem 1rem !important;
-    width: 90% !important;
-    height: 85% !important;
+    padding: 2rem 0.8rem 0.8rem 0.8rem !important;
+    width: 92% !important;
+    height: 90% !important;
+    grid-template-rows: repeat(auto-fill, 1.4em) !important;
+    grid-auto-columns: 1.4em !important;
+    gap: 0.12em !important;
   }
 
   #card-nushu-text span {
-    display: inline-block;
-    margin-bottom: 2.5em !important;
+    width: 1em !important;
+    height: 1em !important;
   }
 
   /* Candle container: reposition below card on mobile */
@@ -1273,14 +1283,13 @@ header,
   }
 
   #card-nushu-text {
-    letter-spacing: 0 !important;
-    line-height: 1.4;
-    font-size: 1.6rem;
-    padding: 2.5rem 0.5rem 0.5rem 0.8rem;
+    font-size: 1.4rem !important;
+    padding: 1.5rem 0.6rem 0.6rem 0.6rem !important;
   }
 
   #card-nushu-text span {
-    margin-bottom: 1.8em !important;
+    width: 1em !important;
+    height: 1em !important;
   }
 
   .era-title {

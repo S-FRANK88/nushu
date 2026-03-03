@@ -401,13 +401,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     await document.fonts.ready;
                 }
 
+                // Temporarily remove overflow:hidden so html2canvas captures everything
+                const origOverflow = cardFront.style.overflow;
+                cardFront.style.overflow = 'visible';
+
+                // Small delay for reflow
+                await new Promise(r => setTimeout(r, 100));
+
                 const canvas = await html2canvas(cardFront, {
                     backgroundColor: '#2b3e61',
                     scale: 2,
                     useCORS: true,
                     logging: false,
-                    allowTaint: false
+                    allowTaint: false,
+                    width: 380,
+                    height: 540
                 });
+
+                // Restore overflow
+                cardFront.style.overflow = origOverflow || '';
 
                 // Start sharing card creation
                 const scale = 2;

@@ -45,9 +45,16 @@ document.addEventListener('DOMContentLoaded', () => {
             currentChineseText = decodedChinese;
             const nushuStr = typeof toNushu === 'function' ? toNushu(decodedChinese) : decodedChinese;
             cardNushuText.innerHTML = '';
+            const missingCharsUrl = new Set();
             if (decodedChinese && decodedChinese.length > 0) {
                 for (let i = 0; i < decodedChinese.length; i++) {
                     const origChar = decodedChinese[i];
+                    if (origChar.trim() === '') {
+                        const s = document.createElement('span');
+                        s.textContent = origChar;
+                        cardNushuText.appendChild(s);
+                        continue;
+                    }
                     const hasMapped = typeof hasNushuMapping === 'function' && hasNushuMapping(origChar);
                     const s = document.createElement('span');
                     if (hasMapped) {
@@ -56,10 +63,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         // No Nüshu mapping — use Liuye calligraphy font
                         s.textContent = origChar;
                         s.style.fontFamily = "'LiuyeTi', serif";
+                        missingCharsUrl.add(origChar);
                     }
                     cardNushuText.appendChild(s);
                 }
             }
+
+            // Wait for DOM to show the missing chars warning securely
+            setTimeout(() => {
+                const warningEl = document.getElementById('missing-chars-warning');
+                const listEl = document.getElementById('missing-chars-list');
+                if (warningEl && listEl) {
+                    if (missingCharsUrl.size > 0) {
+                        listEl.textContent = Array.from(missingCharsUrl).join('、');
+                        warningEl.style.display = 'block';
+                        // In view mode, we put it back in view since input panel is hidden
+                        warningEl.style.marginTop = '2rem';
+                        warningEl.style.color = '#e57373';
+                        if (isViewMode) {
+                            document.getElementById('letter-preview-panel').appendChild(warningEl);
+                        }
+                    }
+                }
+            }, 100);
             currentCount.textContent = decodedChinese.length;
 
             // Adjust UI for View Mode
@@ -104,10 +130,19 @@ document.addEventListener('DOMContentLoaded', () => {
         currentCount.textContent = text.length;
 
         cardNushuText.innerHTML = '';
+        const missingChars = new Set();
 
         if (text && text.length > 0) {
             for (let i = 0; i < text.length; i++) {
                 const origChar = text[i];
+                // Check if char is line break/space and skip missing marking
+                if (origChar.trim() === '') {
+                    const s = document.createElement('span');
+                    s.textContent = origChar;
+                    cardNushuText.appendChild(s);
+                    continue;
+                }
+
                 const hasMapped = typeof hasNushuMapping === 'function' && hasNushuMapping(origChar);
                 const s = document.createElement('span');
                 if (hasMapped) {
@@ -116,8 +151,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     // No Nüshu mapping — use Liuye calligraphy font
                     s.textContent = origChar;
                     s.style.fontFamily = "'LiuyeTi', serif";
+                    missingChars.add(origChar);
                 }
                 cardNushuText.appendChild(s);
+            }
+        }
+
+        // Display missing chars warning
+        const warningEl = document.getElementById('missing-chars-warning');
+        const listEl = document.getElementById('missing-chars-list');
+        if (warningEl && listEl) {
+            if (missingChars.size > 0) {
+                listEl.textContent = Array.from(missingChars).join('、');
+                warningEl.style.display = 'block';
+            } else {
+                warningEl.style.display = 'none';
             }
         }
     });
@@ -379,7 +427,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const canvas = await htmlToImage.toCanvas(cardFront, {
                     backgroundColor: '#2b3e61',
-                    pixelRatio: 2
+                    pixelRatio: 2,
+                    fontEmbedCss: fontCssText
                 });
 
                 // Remove temporary style

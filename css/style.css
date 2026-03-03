@@ -810,7 +810,7 @@ main.active {
 
 #card-nushu-text span {
   display: inline-block;
-  margin-bottom: 1.3em;
+  margin-bottom: 2em;
 }
 
 /* Flashlight container */
@@ -1195,7 +1195,7 @@ header,
 
   #card-nushu-text span {
     display: inline-block;
-    margin-bottom: 1.2em !important;
+    margin-bottom: 2.5em !important;
   }
 
   /* Candle container: reposition below card on mobile */
@@ -1280,7 +1280,7 @@ header,
   }
 
   #card-nushu-text span {
-    margin-bottom: 0.6em !important;
+    margin-bottom: 1.8em !important;
   }
 
   .era-title {

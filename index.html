@@ -13,7 +13,7 @@
         rel="stylesheet">
     <link rel="preload" href="fonts/NotoSansNushu-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="fonts/LiuyeTi.ttf" as="font" type="font/ttf" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=1.2">
+    <link rel="stylesheet" href="css/style.css?v=1.3">
 </head>
 
 <body>
@@ -243,7 +243,7 @@
                 <p class="input-hint">
                     输入汉字，自动转码为古老的女书文字<br>
                     <span class="input-hint-note">
-                        (注：女书流传久远，部分现代生僻字可能并无传记。如有某些字无法显示，不妨换一种古人也会说的相近表达试试看哦。)
+                        (注：女书流传久远，部分现代生僻字可能并无传记。如果某些字无法显现，信中会以“柳叶体”的形式展示出来。)
                     </span>
                 </p>
                 <textarea id="letter-input" placeholder="在此输入你想说的话..." maxlength="40"></textarea>
@@ -254,6 +254,12 @@
                         <label><input type="radio" name="font-size" value="2.2rem" data-max="40" checked> 中字</label>
                         <label><input type="radio" name="font-size" value="2.8rem" data-max="20"> 大字</label>
                     </div>
+                </div>
+                <div id="missing-chars-warning" class="hidden"
+                    style="color: #e57373; font-size: 0.85rem; margin-top: 1rem; text-align: left;">
+                    以下生僻字在女书中无对应，已为您以柳叶体呈现：<br>
+                    <span id="missing-chars-list"
+                        style="color: #ff5252; font-weight: bold; font-family: 'LiuyeTi', serif; font-size: 1.2rem; letter-spacing: 2px;"></span>
                 </div>
             </div>
 
@@ -324,9 +330,9 @@
         </div>
     </main>
 
-    <script src="js/nushu-map.js?v=1.2"></script>
-    <script src="js/main.js?v=1.2"></script>
-    <script src="js/letter.js?v=1.2"></script>
+    <script src="js/nushu-map.js?v=1.3"></script>
+    <script src="js/main.js?v=1.3"></script>
+    <script src="js/letter.js?v=1.3"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 </body>
 

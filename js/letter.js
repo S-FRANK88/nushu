@@ -662,15 +662,44 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.textBaseline = 'middle';
             ctx.fillText("扫码生成专属女书密信", qrX + qrSize + 24 * retina, footerY + footerHeight / 2);
 
-            // 6. Download final PNG image with transparency for rounded corners
-            const link = document.createElement('a');
-            link.download = `Nushu-Letter-${Date.now()}.png`; // Save as PNG
-            link.href = shareCanvas.toDataURL('image/png');
-            link.click();
+            // 6. Display in Modal for Mobile (Long-Press to Save) & Download for PC
+            shareCanvas.toBlob((blob) => {
+                if (!blob) {
+                    throw new Error("Canvas toBlob failed");
+                }
+                const url = URL.createObjectURL(blob);
+
+                // Show modal overlay
+                const modal = document.getElementById('save-modal-overlay');
+                const modalImg = document.getElementById('save-modal-image');
+                modalImg.src = url;
+                modal.classList.remove('hidden');
+
+                // Check if device is PC (rough check)
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (!isMobile) {
+                    // Auto-download on PC
+                    const link = document.createElement('a');
+                    link.download = `Nushu-Letter-${Date.now()}.png`;
+                    link.href = url;
+                    link.click();
+                }
+            }, "image/png");
 
         } catch (err) {
             console.error('Save failed:', err);
-            alert('保存失败，请截图保存');
+            alert('生成图片失败，请稍后重试');
+        }
+    });
+
+    // Close Modal Handler
+    document.getElementById('save-modal-close').addEventListener('click', () => {
+        const modal = document.getElementById('save-modal-overlay');
+        const modalImg = document.getElementById('save-modal-image');
+        modal.classList.add('hidden');
+        if (modalImg.src && modalImg.src.startsWith('blob:')) {
+            URL.revokeObjectURL(modalImg.src); // Cleanup
+            modalImg.src = '';
         }
     });
 

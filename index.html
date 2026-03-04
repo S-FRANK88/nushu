@@ -13,7 +13,7 @@
         rel="stylesheet">
     <link rel="preload" href="fonts/NotoSansNushu-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="fonts/LiuyeTi.ttf" as="font" type="font/ttf" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=2.2">
+    <link rel="stylesheet" href="css/style.css?v=2.3">
 </head>
 
 <body>
@@ -357,9 +357,18 @@
         </div>
     </main>
 
-    <script src="js/nushu-map.js?v=2.2"></script>
-    <script src="js/main.js?v=2.2"></script>
-    <script src="js/letter.js?v=2.2"></script>
+    <!-- Save Image Overlay Modal -->
+    <div id="save-modal-overlay" class="hidden">
+        <div class="save-modal-content">
+            <button id="save-modal-close" class="modal-close-btn">&times;</button>
+            <p>长按下方图片保存到相册</p>
+            <img id="save-modal-image" src="" alt="生成的密信">
+        </div>
+    </div>
+
+    <script src="js/nushu-map.js?v=2.3"></script>
+    <script src="js/main.js?v=2.3"></script>
+    <script src="js/letter.js?v=2.3"></script>
 </body>
 
 </html>

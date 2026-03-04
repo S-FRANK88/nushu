@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.textBaseline = 'middle';
             ctx.fillText("扫码生成专属女书密信", qrX + qrSize + 24 * retina, footerY + footerHeight / 2);
 
-            // 6. Display in Modal for Mobile (Long-Press to Save) & Download for PC
+            // 6. Display in Modal for all devices to guarantee saving works
             shareCanvas.toBlob((blob) => {
                 if (!blob) {
                     throw new Error("Canvas toBlob failed");
@@ -717,15 +717,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 modalImg.src = url;
                 modal.classList.remove('hidden');
 
-                // Check if device is PC (rough check)
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                if (!isMobile) {
-                    // Auto-download on PC
-                    const link = document.createElement('a');
-                    link.download = `Nushu-Letter-${Date.now()}.png`;
-                    link.href = url;
-                    link.click();
-                }
             }, "image/png");
 
         } catch (err) {

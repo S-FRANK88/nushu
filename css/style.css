@@ -767,6 +767,53 @@ main.active {
   transform: scale(-1, -1);
 }
 
+/* Card Themes Additions */
+#card-front {
+  transition: background-color 0.3s;
+}
+
+#card-front.theme-default {
+  background-color: #2b3e61;
+}
+
+#card-front.theme-style1 {
+  background-color: #2b3e61;
+}
+
+#card-front.theme-style2,
+#card-front.theme-custom {
+  background-color: transparent;
+}
+
+#card-frame-style1 {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('../images/corner-style1.png');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  z-index: 2;
+  pointer-events: none;
+}
+
+#card-bg-style2,
+#card-bg-custom {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 1;
+  /* Below text and decorations */
+}
+
+#card-bg-style2 {
+  background-image: url('../images/bg-style2.jpg');
+}
+
 /* Octagon flower pattern background */
 #octagon-bg {
   position: absolute;

@@ -104,6 +104,77 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = window.location.pathname; // Reload without query params
     });
 
+    // ---- Theme Switching Logic ----
+    const themeSelector = document.getElementById('theme-selector');
+    const customBgUpload = document.getElementById('custom-bg-upload');
+    const bgOctagon = document.getElementById('octagon-bg');
+
+    // Theme Elements
+    const ornamentsGroup = document.querySelectorAll('.card-ornament');
+    const frameStyle1 = document.getElementById('card-frame-style1');
+    const bgStyle2 = document.getElementById('card-bg-style2');
+    const bgCustom = document.getElementById('card-bg-custom');
+
+    let customImageSrc = '';
+
+    themeSelector.addEventListener('change', (e) => {
+        const theme = e.target.value;
+        if (theme === 'custom') {
+            customBgUpload.click();
+            return; // Don't apply until file selected
+        }
+        applyTheme(theme);
+    });
+
+    customBgUpload.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                customImageSrc = ev.target.result;
+                bgCustom.style.backgroundImage = `url(${customImageSrc})`;
+                applyTheme('custom');
+                // Force selector to show custom
+                themeSelector.value = 'custom';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // Cancelled, reset dropdown
+            themeSelector.value = letterCard.dataset.currentTheme || 'default';
+        }
+    });
+
+    function applyTheme(theme) {
+        letterCard.dataset.currentTheme = theme;
+        // Hide all
+        ornamentsGroup.forEach(el => el.classList.add('hidden'));
+        frameStyle1.classList.add('hidden');
+        bgStyle2.classList.add('hidden');
+        bgCustom.classList.add('hidden');
+        bgOctagon.classList.add('hidden');
+
+        // Setup according to theme
+        if (theme === 'default') {
+            document.getElementById('card-front').style.backgroundColor = '#2b3e61';
+            ornamentsGroup.forEach(el => el.classList.remove('hidden'));
+            bgOctagon.classList.remove('hidden');
+        } else if (theme === 'style1') {
+            document.getElementById('card-front').style.backgroundColor = '#2b3e61';
+            frameStyle1.classList.remove('hidden');
+            bgOctagon.classList.remove('hidden');
+        } else if (theme === 'style2') {
+            document.getElementById('card-front').style.backgroundColor = 'transparent';
+            bgStyle2.classList.remove('hidden');
+        } else if (theme === 'custom') {
+            document.getElementById('card-front').style.backgroundColor = '#2b3e61'; // Base fallback
+            bgCustom.classList.remove('hidden');
+        }
+    }
+
+    // Initial theme layout
+    applyTheme('default');
+
+
     // ---- Font Size Controls (no character limit) ----
     const fontSizeRadios = document.querySelectorAll('input[name="font-size"]');
 
@@ -384,52 +455,62 @@ document.addEventListener('DOMContentLoaded', () => {
             const cc = cardCanvas.getContext('2d');
             cc.scale(retina, retina);
 
-            // Draw card background color
-            cc.fillStyle = '#2b3e61';
-            cc.fillRect(0, 0, cardW, cardH);
+            const theme = letterCard.dataset.currentTheme || 'default';
 
-            // Draw subtle inset shadow effect
-            const grad = cc.createRadialGradient(cardW / 2, cardH / 2, 100, cardW / 2, cardH / 2, cardW);
-            grad.addColorStop(0, 'rgba(0,0,0,0)');
-            grad.addColorStop(1, 'rgba(0,0,0,0.3)');
-            cc.fillStyle = grad;
-            cc.fillRect(0, 0, cardW, cardH);
+            // === Layer 1: Card background ===
+            if (theme === 'style2' || theme === 'custom') {
+                try {
+                    const bgImgSrc = theme === 'style2' ? 'images/bg-style2.jpg' : customImageSrc;
+                    const bImg = await loadImage(bgImgSrc);
+                    // Draw cover
+                    cc.save();
+                    cc.beginPath();
+                    cc.rect(0, 0, cardW, cardH);
+                    cc.clip();
+                    const rW = cardW / bImg.width;
+                    const rH = cardH / bImg.height;
+                    const r = Math.max(rW, rH);
+                    const nW = bImg.width * r;
+                    const nH = bImg.height * r;
+                    cc.drawImage(bImg, (cardW - nW) / 2, (cardH - nH) / 2, nW, nH);
+                    cc.restore();
+                } catch (e) {
+                    console.error("Failed to draw full background, falling back to blue:", e);
+                    cc.fillStyle = '#2b3e61';
+                    cc.fillRect(0, 0, cardW, cardH);
+                }
+            } else {
+                cc.fillStyle = '#2b3e61';
+                cc.fillRect(0, 0, cardW, cardH);
 
-            // Draw card border
-            cc.strokeStyle = 'rgba(160,140,110,0.35)';
-            cc.lineWidth = 2;
-            cc.strokeRect(8, 8, cardW - 16, cardH - 16);
+                // Draw subtle inset shadow effect
+                const grad = cc.createRadialGradient(cardW / 2, cardH / 2, 100, cardW / 2, cardH / 2, cardW);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(1, 'rgba(0,0,0,0.3)');
+                cc.fillStyle = grad;
+                cc.fillRect(0, 0, cardW, cardH);
 
-            // === Layer 2: Corner flower ornaments ===
-            try {
-                const flowerImg = await loadImage('images/corner-flower.png');
-                const flowerSize = 140;
+                // Draw card border
+                cc.strokeStyle = 'rgba(160,140,110,0.35)';
+                cc.lineWidth = 2;
+                cc.strokeRect(8, 8, cardW - 16, cardH - 16);
+            }
 
-                // Top-left (normal)
-                cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize);
-
-                // Top-right (flip X)
-                cc.save();
-                cc.translate(cardW, 0);
-                cc.scale(-1, 1);
-                cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize);
-                cc.restore();
-
-                // Bottom-left (flip Y)
-                cc.save();
-                cc.translate(0, cardH);
-                cc.scale(1, -1);
-                cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize);
-                cc.restore();
-
-                // Bottom-right (flip both)
-                cc.save();
-                cc.translate(cardW, cardH);
-                cc.scale(-1, -1);
-                cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize);
-                cc.restore();
-            } catch (e) {
-                console.warn('Could not load flower ornament:', e);
+            // === Layer 2: Ornaments / Overlays ===
+            if (theme === 'default') {
+                try {
+                    const flowerImg = await loadImage('images/corner-flower.png');
+                    const flowerSize = 140;
+                    cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize);
+                    cc.save(); cc.translate(cardW, 0); cc.scale(-1, 1); cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize); cc.restore();
+                    cc.save(); cc.translate(0, cardH); cc.scale(1, -1); cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize); cc.restore();
+                    cc.save(); cc.translate(cardW, cardH); cc.scale(-1, -1); cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize); cc.restore();
+                } catch (e) { console.warn('Could not load flower ornament:', e); }
+            } else if (theme === 'style1') {
+                try {
+                    const frameImg = await loadImage('images/corner-style1.png');
+                    cc.drawImage(frameImg, 0, 0, cardW, cardH);
+                } catch (e) { console.warn('Could not load frame style1:', e); }
             }
 
             // === Layer 3: Text characters in vertical grid ===

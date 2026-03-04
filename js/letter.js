@@ -108,14 +108,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeSelector = document.getElementById('theme-selector');
     const customBgUpload = document.getElementById('custom-bg-upload');
     const bgOctagon = document.getElementById('octagon-bg');
+    const textColorPicker = document.getElementById('text-color-picker');
 
     // Theme Elements
     const ornamentsGroup = document.querySelectorAll('.card-ornament');
     const frameStyle1 = document.getElementById('card-frame-style1');
     const bgStyle2 = document.getElementById('card-bg-style2');
     const bgCustom = document.getElementById('card-bg-custom');
+    const bgMask = document.getElementById('card-bg-mask');
 
     let customImageSrc = '';
+
+    // Color Picker Listener
+    textColorPicker.addEventListener('input', (e) => {
+        cardNushuText.style.color = e.target.value;
+    });
 
     themeSelector.addEventListener('change', (e) => {
         const theme = e.target.value;
@@ -152,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bgStyle2.classList.add('hidden');
         bgCustom.classList.add('hidden');
         bgOctagon.classList.add('hidden');
+        bgMask.classList.add('hidden');
 
         // Setup according to theme
         if (theme === 'default') {
@@ -168,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (theme === 'custom') {
             document.getElementById('card-front').style.backgroundColor = '#2b3e61'; // Base fallback
             bgCustom.classList.remove('hidden');
+            bgMask.classList.remove('hidden'); // Mask to improve text readability
         }
     }
 
@@ -473,6 +482,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const nW = bImg.width * r;
                     const nH = bImg.height * r;
                     cc.drawImage(bImg, (cardW - nW) / 2, (cardH - nH) / 2, nW, nH);
+                    if (theme === 'custom') {
+                        cc.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                        cc.fillRect(0, 0, cardW, cardH);
+                    }
                     cc.restore();
                 } catch (e) {
                     console.error("Failed to draw full background, falling back to blue:", e);
@@ -530,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const areaH = cardH - padTop - padBottom;
                 const rowsPerCol = Math.floor(areaH / step);
 
-                cc.fillStyle = '#fcefdc';
+                cc.fillStyle = textColorPicker.value || '#fcefdc';
                 cc.textAlign = 'center';
                 cc.textBaseline = 'middle';
 
@@ -587,11 +600,31 @@ document.addEventListener('DOMContentLoaded', () => {
             shareCanvas.width = cardCanvas.width + (padding * 2);
             shareCanvas.height = cardCanvas.height + padding + padding + footerHeight;
 
+            // Optional: Draw rounded clip on shareCanvas to give final image soft corners
+            const cornerRadius = 32 * retina;
+            ctx.beginPath();
+            ctx.moveTo(cornerRadius, 0);
+            ctx.lineTo(shareCanvas.width - cornerRadius, 0);
+            ctx.quadraticCurveTo(shareCanvas.width, 0, shareCanvas.width, cornerRadius);
+            ctx.lineTo(shareCanvas.width, shareCanvas.height - cornerRadius);
+            ctx.quadraticCurveTo(shareCanvas.width, shareCanvas.height, shareCanvas.width - cornerRadius, shareCanvas.height);
+            ctx.lineTo(cornerRadius, shareCanvas.height);
+            ctx.quadraticCurveTo(0, shareCanvas.height, 0, shareCanvas.height - cornerRadius);
+            ctx.lineTo(0, cornerRadius);
+            ctx.quadraticCurveTo(0, 0, cornerRadius, 0);
+            ctx.closePath();
+            ctx.clip();
+
             // 1. Draw dark background
             ctx.fillStyle = '#0f172a';
-            ctx.fillRect(0, 0, shareCanvas.width, shareCanvas.height - footerHeight);
+            ctx.fillRect(0, 0, shareCanvas.width, shareCanvas.height);
 
-            // 2. Draw the card canvas with shadow
+            // 2. Draw footer background FIRST (so it overlays dark bg correctly at bottom)
+            const footerY = shareCanvas.height - footerHeight;
+            ctx.fillStyle = '#f4f4f5';
+            ctx.fillRect(0, footerY, shareCanvas.width, footerHeight);
+
+            // 3. Draw the card canvas with shadow
             ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
             ctx.shadowBlur = 40 * retina;
             ctx.shadowOffsetY = 20 * retina;
@@ -600,11 +633,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.shadowColor = 'transparent';
             ctx.shadowBlur = 0;
             ctx.shadowOffsetY = 0;
-
-            // 3. Draw footer background
-            const footerY = shareCanvas.height - footerHeight;
-            ctx.fillStyle = '#f4f4f5';
-            ctx.fillRect(0, footerY, shareCanvas.width, footerHeight);
 
             // 4. Generate & draw QR code
             const qrSize = 90 * retina;
@@ -634,10 +662,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.textBaseline = 'middle';
             ctx.fillText("扫码生成专属女书密信", qrX + qrSize + 24 * retina, footerY + footerHeight / 2);
 
-            // 6. Download final image
+            // 6. Download final PNG image with transparency for rounded corners
             const link = document.createElement('a');
-            link.download = `Nushu-Letter-${Date.now()}.jpg`;
-            link.href = shareCanvas.toDataURL('image/jpeg', 0.95);
+            link.download = `Nushu-Letter-${Date.now()}.png`; // Save as PNG
+            link.href = shareCanvas.toDataURL('image/png');
             link.click();
 
         } catch (err) {

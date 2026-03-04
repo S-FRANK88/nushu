@@ -13,7 +13,7 @@
         rel="stylesheet">
     <link rel="preload" href="fonts/NotoSansNushu-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="fonts/LiuyeTi.ttf" as="font" type="font/ttf" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=2.1">
+    <link rel="stylesheet" href="css/style.css?v=2.2">
 </head>
 
 <body>
@@ -255,8 +255,9 @@
                         <label><input type="radio" name="font-size" value="2.8rem"> 大字</label>
                     </div>
                 </div>
-                <div class="theme-controls" style="margin-top: 15px; display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 0.95rem; color: #6b7280;">信纸花纹:</span>
+                <div class="theme-controls"
+                    style="margin-top: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <span style="font-size: 0.95rem; color: #6b7280; white-space: nowrap;">信纸花纹:</span>
                     <select id="theme-selector"
                         style="flex: 1; padding: 6px; border-radius: 6px; border: 1px solid #d1d5db; background: white; font-size: 0.95rem; cursor: pointer;">
                         <option value="default">默认四角 (蓝底)</option>
@@ -265,6 +266,11 @@
                         <option value="custom">上传自定义信纸...</option>
                     </select>
                     <input type="file" id="custom-bg-upload" accept="image/*" style="display: none;">
+
+                    <span
+                        style="font-size: 0.95rem; color: #6b7280; white-space: nowrap; margin-left: 5px;">文字颜色:</span>
+                    <input type="color" id="text-color-picker" value="#fcefdc"
+                        style="width: 32px; height: 32px; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; padding: 0; background: none;">
                 </div>
                 <div id="missing-chars-warning" class="hidden"
                     style="color: #e57373; font-size: 0.85rem; margin-top: 1rem; text-align: left;">
@@ -290,6 +296,10 @@
                             <!-- Style 2 & Custom: Full Background Image -->
                             <div id="card-bg-style2" class="hidden"></div>
                             <div id="card-bg-custom" class="hidden"></div>
+
+                            <!-- Text readability mask for custom backgrounds -->
+                            <div id="card-bg-mask" class="hidden"></div>
+
                             <div id="octagon-bg"></div>
                             <div id="card-nushu-text"></div>
                             <!-- Shadow layer for flashlight decryption -->
@@ -347,9 +357,9 @@
         </div>
     </main>
 
-    <script src="js/nushu-map.js?v=2.1"></script>
-    <script src="js/main.js?v=2.1"></script>
-    <script src="js/letter.js?v=2.1"></script>
+    <script src="js/nushu-map.js?v=2.2"></script>
+    <script src="js/main.js?v=2.2"></script>
+    <script src="js/letter.js?v=2.2"></script>
 </body>
 
 </html>

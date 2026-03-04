@@ -187,13 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- Font Size Controls (no character limit) ----
     const fontSizeRadios = document.querySelectorAll('input[name="font-size"]');
 
-    fontSizeRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            cardNushuText.style.fontSize = e.target.value;
-        });
-    });
-
-    letterInput.addEventListener('input', () => {
+    function updateTextLayout() {
         const text = letterInput.value;
         currentChineseText = text;
         currentCount.textContent = text.length;
@@ -202,9 +196,44 @@ document.addEventListener('DOMContentLoaded', () => {
         const missingChars = new Set();
 
         if (text && text.length > 0) {
-            for (let i = 0; i < text.length; i++) {
-                const origChar = text[i];
-                // Check if char is line break/space and skip missing marking
+            // Calculate grid rows
+            const fontSize = parseFloat(getComputedStyle(cardNushuText).fontSize) || 35.2;
+            const step = fontSize * 1.55;
+            const areaH = 540 - 45 - 20; // cardH - padTop - padBottom match canvas
+            const rowsPerCol = Math.floor(areaH / step) || 8;
+
+            let chars = Array.from(text);
+            let paddedChars = [];
+
+            // Col 1 (Rightmost)
+            paddedChars.push(' ', ' ');
+            let col1Take = Math.min(chars.length, rowsPerCol - 4);
+            paddedChars.push(...chars.splice(0, col1Take));
+
+            if (chars.length > 0) {
+                let remainder = rowsPerCol - (2 + col1Take);
+                for (let i = 0; i < remainder; i++) paddedChars.push(' ');
+
+                while (chars.length > 0) {
+                    if (chars.length <= rowsPerCol - 4) {
+                        // Last column (Leftmost)
+                        paddedChars.push(' ', ' ');
+                        paddedChars.push(...chars.splice(0, chars.length));
+                    } else {
+                        // Middle columns
+                        let take = Math.min(chars.length, rowsPerCol);
+                        paddedChars.push(...chars.splice(0, take));
+
+                        // Pad to full column to ensure proper column wrapping
+                        let colRemain = rowsPerCol - take;
+                        for (let i = 0; i < colRemain; i++) paddedChars.push(' ');
+                    }
+                }
+            }
+
+            // Create spans
+            for (let i = 0; i < paddedChars.length; i++) {
+                const origChar = paddedChars[i];
                 if (origChar.trim() === '') {
                     const s = document.createElement('span');
                     s.textContent = origChar;
@@ -217,7 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (hasMapped) {
                     s.textContent = typeof toNushu === 'function' ? toNushu(origChar) : origChar;
                 } else {
-                    // No Nüshu mapping — use Liuye calligraphy font
                     s.textContent = origChar;
                     s.style.fontFamily = "'LiuyeTi', serif";
                     missingChars.add(origChar);
@@ -226,7 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Display missing chars warning
         const warningEl = document.getElementById('missing-chars-warning');
         const listEl = document.getElementById('missing-chars-list');
         if (warningEl && listEl) {
@@ -237,7 +264,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 warningEl.style.display = 'none';
             }
         }
+    }
+
+    fontSizeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            cardNushuText.style.fontSize = e.target.value;
+            updateTextLayout(); // Recalculate pads on font resize
+        });
     });
+
+    letterInput.addEventListener('input', updateTextLayout);
 
     // ---- Card Flip ----
     btnFlip.addEventListener('click', () => {
@@ -326,16 +362,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('touchmove', (e) => {
-        if (e.touches.length > 0) {
-            handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+        if (candleActive) {
+            e.preventDefault(); // Prevent scrolling while flashlight is active on mobile
+            if (e.touches.length > 0) {
+                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+            }
         }
-    }, { passive: true });
+    }, { passive: false });
 
     document.addEventListener('touchstart', (e) => {
-        if (candleActive && e.touches.length > 0) {
-            handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+        if (candleActive) {
+            e.preventDefault();
+            if (e.touches.length > 0) {
+                handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+            }
         }
-    }, { passive: true });
+    }, { passive: false });
 
     function buildShadowMap() {
         shadowLayer.classList.remove('hidden');
@@ -403,12 +445,12 @@ document.addEventListener('DOMContentLoaded', () => {
             let proximity = Math.max(0, 1 - (dist / maxDist));
             proximity = Math.pow(proximity, 1.2);
 
-            // Shadow offset: very small, cast away from the light (like a real shadow)
+            // Shadow offset: cast away from the light, slightly shifted left
             const stretchFactor = 0.03 + (dist / 3000);
-            const shadowOffsetX = (dx * stretchFactor) / scaleX;
+            const shadowOffsetX = ((dx * stretchFactor) / scaleX) - 12; // Shifted left so it doesn't completely overlap
             const shadowOffsetY = (dy * stretchFactor) / scaleY;
 
-            // Final position stays very close to the original character
+            // Final position stays close to the character
             const finalX = baseX + shadowOffsetX;
             const finalY = baseY + shadowOffsetY;
 

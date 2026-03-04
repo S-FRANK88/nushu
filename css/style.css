@@ -739,7 +739,6 @@ main.active {
   pointer-events: none;
   background-size: cover;
   background-repeat: no-repeat;
-  mix-blend-mode: multiply;
 }
 
 /* Flower corners — positioned INSIDE the card boundary to avoid html2canvas clipping */

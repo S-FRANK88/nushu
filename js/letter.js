@@ -104,49 +104,14 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = window.location.pathname; // Reload without query params
     });
 
-    // ---- Font Size Controls & Dynamic Character Limits ----
+    // ---- Font Size Controls (no character limit) ----
     const fontSizeRadios = document.querySelectorAll('input[name="font-size"]');
-    const maxCountSpan = document.getElementById('max-count');
-
-    function updateMaxCount() {
-        const checkedRadio = document.querySelector('input[name="font-size"]:checked');
-        if (!checkedRadio) return;
-
-        cardNushuText.style.fontSize = checkedRadio.value;
-        const fontSizeVal = checkedRadio.value;
-        let newMax = parseInt(checkedRadio.getAttribute('data-max'));
-
-        // Mobile layout allows fewer words per column due to container shape & spacing adjustments
-        if (window.innerWidth <= 768) {
-            if (fontSizeVal === '1.6rem') newMax = 42;
-            else if (fontSizeVal === '2.2rem') newMax = 28;
-            else if (fontSizeVal === '2.8rem') newMax = 16;
-        } else {
-            // Desktop safe limits
-            if (fontSizeVal === '1.6rem') newMax = 80;
-            else if (fontSizeVal === '2.2rem') newMax = 44;
-            else if (fontSizeVal === '2.8rem') newMax = 24;
-        }
-
-        if (newMax) {
-            letterInput.maxLength = newMax;
-            maxCountSpan.textContent = newMax;
-            // Trim existing text if it exceeds the new limit
-            if (letterInput.value.length > newMax) {
-                letterInput.value = letterInput.value.substring(0, newMax);
-                letterInput.dispatchEvent(new Event('input')); // Trigger update
-            }
-        }
-    }
 
     fontSizeRadios.forEach(radio => {
-        radio.addEventListener('change', updateMaxCount);
+        radio.addEventListener('change', (e) => {
+            cardNushuText.style.fontSize = e.target.value;
+        });
     });
-
-    window.addEventListener('resize', updateMaxCount);
-
-    // Initialize
-    updateMaxCount();
 
     letterInput.addEventListener('input', () => {
         const text = letterInput.value;
@@ -382,7 +347,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ---- Save Card as Image ----
+    // ---- Helper: Load an image as a promise ----
+    function loadImage(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+        });
+    }
+
+    // ---- Save Card as Image (Pure Canvas Layered Drawing) ----
     btnSave.addEventListener('click', async () => {
         // Make sure card is showing front
         if (letterCard.classList.contains('flipped')) {
@@ -392,114 +368,197 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Use html2canvas if available
-            if (typeof html2canvas !== 'undefined') {
-                const cardFront = document.getElementById('card-front');
+            // Wait for all fonts to be ready
+            if (document.fonts && document.fonts.ready) {
+                await document.fonts.ready;
+            }
 
-                // Wait for all fonts to be ready
-                if (document.fonts && document.fonts.ready) {
-                    await document.fonts.ready;
-                }
+            // === Card dimensions ===
+            const cardW = 380, cardH = 540;
+            const retina = 2;
 
-                // Temporarily remove overflow:hidden so html2canvas captures everything
-                const origOverflow = cardFront.style.overflow;
-                cardFront.style.overflow = 'visible';
+            // === Layer 1: Card background canvas ===
+            const cardCanvas = document.createElement('canvas');
+            cardCanvas.width = cardW * retina;
+            cardCanvas.height = cardH * retina;
+            const cc = cardCanvas.getContext('2d');
+            cc.scale(retina, retina);
 
-                // Small delay for reflow
-                await new Promise(r => setTimeout(r, 100));
+            // Draw card background color
+            cc.fillStyle = '#2b3e61';
+            cc.fillRect(0, 0, cardW, cardH);
 
-                const canvas = await html2canvas(cardFront, {
-                    backgroundColor: '#2b3e61',
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    allowTaint: false,
-                    width: 380,
-                    height: 540
+            // Draw subtle inset shadow effect
+            const grad = cc.createRadialGradient(cardW / 2, cardH / 2, 100, cardW / 2, cardH / 2, cardW);
+            grad.addColorStop(0, 'rgba(0,0,0,0)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.3)');
+            cc.fillStyle = grad;
+            cc.fillRect(0, 0, cardW, cardH);
+
+            // Draw card border
+            cc.strokeStyle = 'rgba(160,140,110,0.35)';
+            cc.lineWidth = 2;
+            cc.strokeRect(8, 8, cardW - 16, cardH - 16);
+
+            // === Layer 2: Corner flower ornaments ===
+            try {
+                const flowerImg = await loadImage('images/corner-flower.png');
+                const flowerSize = 140;
+
+                // Top-left (normal)
+                cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize);
+
+                // Top-right (flip X)
+                cc.save();
+                cc.translate(cardW, 0);
+                cc.scale(-1, 1);
+                cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize);
+                cc.restore();
+
+                // Bottom-left (flip Y)
+                cc.save();
+                cc.translate(0, cardH);
+                cc.scale(1, -1);
+                cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize);
+                cc.restore();
+
+                // Bottom-right (flip both)
+                cc.save();
+                cc.translate(cardW, cardH);
+                cc.scale(-1, -1);
+                cc.drawImage(flowerImg, 0, 0, flowerSize, flowerSize);
+                cc.restore();
+            } catch (e) {
+                console.warn('Could not load flower ornament:', e);
+            }
+
+            // === Layer 3: Text characters in vertical grid ===
+            const spans = cardNushuText.querySelectorAll('span');
+            if (spans.length > 0) {
+                const fontSize = parseFloat(getComputedStyle(cardNushuText).fontSize) || 35;
+                const cellSize = fontSize * 1.4;
+                const gap = fontSize * 0.15;
+                const step = cellSize + gap;
+
+                // Text area padding (inside the card)
+                const padTop = 45;
+                const padRight = 20;
+                const padBottom = 20;
+                const padLeft = 20;
+
+                const areaH = cardH - padTop - padBottom;
+                const rowsPerCol = Math.floor(areaH / step);
+
+                cc.fillStyle = '#fcefdc';
+                cc.textAlign = 'center';
+                cc.textBaseline = 'middle';
+
+                let charIndex = 0;
+                spans.forEach((span) => {
+                    const charText = span.textContent;
+                    if (!charText || charText.trim() === '') {
+                        charIndex++;
+                        return;
+                    }
+
+                    const col = Math.floor(charIndex / rowsPerCol);
+                    const row = charIndex % rowsPerCol;
+
+                    // Right to left columns
+                    const x = cardW - padRight - (col + 0.5) * step;
+                    const y = padTop + (row + 0.5) * step;
+
+                    // Check if the span uses LiuyeTi
+                    const isLiuye = span.style.fontFamily && span.style.fontFamily.includes('LiuyeTi');
+
+                    // Set font
+                    if (isLiuye) {
+                        cc.font = `${fontSize}px 'LiuyeTi', serif`;
+                    } else {
+                        cc.font = `${fontSize}px 'Nyushu', 'NotoSansNushu', 'Noto Sans Nushu', sans-serif`;
+                    }
+
+                    // Text shadow effect
+                    cc.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                    cc.shadowBlur = 8;
+                    cc.shadowOffsetX = 0;
+                    cc.shadowOffsetY = 2;
+
+                    cc.fillText(charText, x, y);
+
+                    charIndex++;
                 });
 
-                // Restore overflow
-                cardFront.style.overflow = origOverflow || '';
-
-                // Start sharing card creation
-                const scale = 2;
-                const padding = 60 * scale;
-                const footerHeight = 140 * scale;
-
-                const shareCanvas = document.createElement('canvas');
-                const ctx = shareCanvas.getContext('2d');
-
-                shareCanvas.width = canvas.width + (padding * 2);
-                shareCanvas.height = canvas.height + padding + padding + footerHeight;
-
-                // 1. Draw Background
-                ctx.fillStyle = '#0f172a';
-                ctx.fillRect(0, 0, shareCanvas.width, shareCanvas.height - footerHeight);
-
-                // 2. Draw the generated Card with a shadow
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-                ctx.shadowBlur = 40 * scale;
-                ctx.shadowOffsetY = 20 * scale;
-                ctx.drawImage(canvas, padding, padding);
-
-                ctx.shadowColor = 'transparent';
-                ctx.shadowBlur = 0;
-                ctx.shadowOffsetY = 0;
-
-                // 3. Draw Footer Background
-                const footerY = shareCanvas.height - footerHeight;
-                ctx.fillStyle = '#f4f4f5';
-                ctx.fillRect(0, footerY, shareCanvas.width, footerHeight);
-
-                // 4. Generate & Draw QR Code
-                const qrSize = 90 * scale;
-                const qrX = padding;
-                const qrY = footerY + (footerHeight - qrSize) / 2;
-
-                const baseUrl = window.location.href.split('?')[0];
-                const textToShare = currentChineseText || '';
-                let shareUrl = baseUrl;
-                if (textToShare) {
-                    const encodedText = btoa(encodeURIComponent(textToShare));
-                    shareUrl = `${baseUrl}?text=${encodedText}`;
-                }
-
-                try {
-                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(shareUrl)}`;
-                    const response = await fetch(qrUrl);
-                    const blob = await response.blob();
-                    const objectUrl = URL.createObjectURL(blob);
-
-                    const qrImg = new Image();
-                    await new Promise((resolve, reject) => {
-                        qrImg.onload = resolve;
-                        qrImg.onerror = reject;
-                        qrImg.src = objectUrl;
-                    });
-
-                    ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
-                    URL.revokeObjectURL(objectUrl);
-                } catch (e) {
-                    console.warn("Could not draw QR code due to network/CORS issue", e);
-                }
-
-                // 5. Draw Hint Text （可修改：下方提示文字）
-                ctx.fillStyle = '#3f3f46';
-                ctx.font = `${18 * scale}px 'Noto Serif SC', serif, sans-serif`;
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'middle';
-                ctx.fillText("扫码生成专属女书密信", qrX + qrSize + 24 * scale, footerY + footerHeight / 2);
-
-                // 6. Brand name removed
-
-                // 7. Download Final Image
-                const link = document.createElement('a');
-                link.download = `Nushu-Letter-${Date.now()}.jpg`;
-                link.href = shareCanvas.toDataURL('image/jpeg', 0.95);
-                link.click();
-            } else {
-                alert('图片保存功能加载中，请稍后再试');
+                // Reset shadow
+                cc.shadowColor = 'transparent';
+                cc.shadowBlur = 0;
+                cc.shadowOffsetX = 0;
+                cc.shadowOffsetY = 0;
             }
+
+            // === Compose final share image ===
+            const padding = 60 * retina;
+            const footerHeight = 140 * retina;
+
+            const shareCanvas = document.createElement('canvas');
+            const ctx = shareCanvas.getContext('2d');
+
+            shareCanvas.width = cardCanvas.width + (padding * 2);
+            shareCanvas.height = cardCanvas.height + padding + padding + footerHeight;
+
+            // 1. Draw dark background
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, shareCanvas.width, shareCanvas.height - footerHeight);
+
+            // 2. Draw the card canvas with shadow
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+            ctx.shadowBlur = 40 * retina;
+            ctx.shadowOffsetY = 20 * retina;
+            ctx.drawImage(cardCanvas, padding, padding);
+
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+
+            // 3. Draw footer background
+            const footerY = shareCanvas.height - footerHeight;
+            ctx.fillStyle = '#f4f4f5';
+            ctx.fillRect(0, footerY, shareCanvas.width, footerHeight);
+
+            // 4. Generate & draw QR code
+            const qrSize = 90 * retina;
+            const qrX = padding;
+            const qrY = footerY + (footerHeight - qrSize) / 2;
+
+            const baseUrl = window.location.href.split('?')[0];
+            const textToShare = currentChineseText || '';
+            let shareUrl = baseUrl;
+            if (textToShare) {
+                const encodedText = btoa(encodeURIComponent(textToShare));
+                shareUrl = `${baseUrl}?text=${encodedText}`;
+            }
+
+            try {
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(shareUrl)}`;
+                const qrImg = await loadImage(qrUrl);
+                ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+            } catch (e) {
+                console.warn("Could not draw QR code:", e);
+            }
+
+            // 5. Draw hint text
+            ctx.fillStyle = '#3f3f46';
+            ctx.font = `${18 * retina}px 'Noto Serif SC', serif, sans-serif`;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText("扫码生成专属女书密信", qrX + qrSize + 24 * retina, footerY + footerHeight / 2);
+
+            // 6. Download final image
+            const link = document.createElement('a');
+            link.download = `Nushu-Letter-${Date.now()}.jpg`;
+            link.href = shareCanvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+
         } catch (err) {
             console.error('Save failed:', err);
             alert('保存失败，请截图保存');

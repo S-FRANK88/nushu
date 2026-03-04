@@ -13,7 +13,7 @@
         rel="stylesheet">
     <link rel="preload" href="fonts/NotoSansNushu-Regular.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="preload" href="fonts/LiuyeTi.ttf" as="font" type="font/ttf" crossorigin>
-    <link rel="stylesheet" href="css/style.css?v=1.6">
+    <link rel="stylesheet" href="css/style.css?v=2.0">
 </head>
 
 <body>
@@ -246,13 +246,13 @@
                         (注：女书流传久远，部分现代生僻字可能并无传记。如果某些字无法显现，信中会以“柳叶体”的形式展示出来。)
                     </span>
                 </p>
-                <textarea id="letter-input" placeholder="在此输入你想说的话..." maxlength="40"></textarea>
+                <textarea id="letter-input" placeholder="在此输入你想说的话..."></textarea>
                 <div class="input-controls">
-                    <div id="char-count"><span id="current-count">0</span>/<span id="max-count">40</span></div>
+                    <div id="char-count"><span id="current-count">0</span> 字</div>
                     <div class="font-size-controls">
-                        <label><input type="radio" name="font-size" value="1.6rem" data-max="80"> 小字</label>
-                        <label><input type="radio" name="font-size" value="2.2rem" data-max="40" checked> 中字</label>
-                        <label><input type="radio" name="font-size" value="2.8rem" data-max="20"> 大字</label>
+                        <label><input type="radio" name="font-size" value="1.6rem"> 小字</label>
+                        <label><input type="radio" name="font-size" value="2.2rem" checked> 中字</label>
+                        <label><input type="radio" name="font-size" value="2.8rem"> 大字</label>
                     </div>
                 </div>
                 <div id="missing-chars-warning" class="hidden"
@@ -330,10 +330,9 @@
         </div>
     </main>
 
-    <script src="js/nushu-map.js?v=1.6"></script>
-    <script src="js/main.js?v=1.6"></script>
-    <script src="js/letter.js?v=1.6"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="js/nushu-map.js?v=2.0"></script>
+    <script src="js/main.js?v=2.0"></script>
+    <script src="js/letter.js?v=2.0"></script>
 </body>
 
 </html>

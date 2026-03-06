@@ -956,9 +956,17 @@ main.active {
 .back-nushu-char {
   font-family: var(--font-nushu);
   font-size: 120px;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
-  line-height: 1;
+  line-height: 1.2;
+  background: linear-gradient(to bottom,
+      #d4a574 0%, #b58d55 15%,
+      #8c6d46 25%,
+      #2a3a5f 35%, #0f3460 55%,
+      #0f3460 65%,
+      #667eea 75%, #764ba2 85%, #d16ce0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(212, 165, 116, 0.2));
 }
 
 .back-label {

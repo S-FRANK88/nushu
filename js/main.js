@@ -73,8 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setTimeout(() => ripple.remove(), 1500);
 
-        // Smooth scroll to first era section
-        document.getElementById('era-silk').scrollIntoView({ behavior: 'smooth' });
+        // Change page to the letter writing section instead of scrolling
+        setTimeout(() => openLetterPage(), 800);
     });
 
     // Add ripple keyframes dynamically

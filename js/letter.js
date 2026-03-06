@@ -23,6 +23,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const now = new Date();
     backDate.textContent = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
 
+    // ---- Card Back Style Cycling & Glow ----
+    const backChar = document.querySelector('.back-nushu-char');
+    const backGlowRing = document.getElementById('back-glow-ring');
+    const backStyles = ['style-a', 'style-b', 'style-c'];
+    const backStyleNames = ['鎏金暗纹', '提亮中部', '纯净白金'];
+    let currentBackStyle = 0;
+
+    if (backChar) {
+        backChar.addEventListener('click', () => {
+            // Cycle to next style
+            backChar.classList.remove(backStyles[currentBackStyle]);
+            currentBackStyle = (currentBackStyle + 1) % backStyles.length;
+            backChar.classList.add(backStyles[currentBackStyle]);
+
+            // Trigger glow burst animation
+            backChar.classList.remove('glow-burst');
+            void backChar.offsetWidth; // Force reflow to restart animation
+            backChar.classList.add('glow-burst');
+
+            // Show glow ring behind the character
+            if (backGlowRing) {
+                backGlowRing.classList.add('active');
+                setTimeout(() => backGlowRing.classList.remove('active'), 1200);
+            }
+
+            // Update hint text
+            const hint = document.querySelector('.back-style-hint');
+            if (hint) hint.textContent = backStyleNames[currentBackStyle] + ' · 点击切换';
+        });
+    }
+
     // ---- Real-time transcription ----
     let currentChineseText = '';
 

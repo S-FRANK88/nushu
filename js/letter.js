@@ -769,6 +769,19 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.textBaseline = 'middle';
             ctx.fillText("扫码生成专属女书密信", qrX + qrSize + 24 * retina, footerY + footerHeight / 2);
 
+            // 6. Draw AXSIS logo in bottom-right
+            try {
+                const logoImg = await loadImage('images/axsis-logo.png');
+                const logoW = 273 * retina;
+                const logoH = 54 * retina;
+                const logoRightMargin = 54 * retina;
+                const logoX = shareCanvas.width - logoRightMargin - logoW;
+                const logoY = qrY + qrSize - logoH; // Bottom edge aligns with QR bottom
+                ctx.drawImage(logoImg, logoX, logoY, logoW, logoH);
+            } catch (e) {
+                console.warn("Could not draw AXSIS logo:", e);
+            }
+
             // 6. Display in Modal for all devices to guarantee saving works
             shareCanvas.toBlob((blob) => {
                 if (!blob) {

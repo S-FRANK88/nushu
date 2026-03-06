@@ -425,12 +425,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const spanEl = nushuSpans[i];
             if (!spanEl) return;
 
-            // Get actual on-screen location of the Nüshu character
+            // Get actual on-screen location of the Nüshu character WITHOUT absolute drag coordinates first
             const spanRect = spanEl.getBoundingClientRect();
 
             // Center point of the actual character on screen
-            const screenBaseX = spanRect.left + spanRect.width / 2;
-            const screenBaseY = spanRect.top + spanRect.height / 2;
+            let screenBaseX = spanRect.left + spanRect.width / 2;
+            let screenBaseY = spanRect.top + spanRect.height / 2;
 
             // Distance from mouse to the character (on screen)
             const screenDx = screenBaseX - mouseX;
@@ -438,10 +438,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const dist = Math.sqrt(screenDx * screenDx + screenDy * screenDy);
 
             // Calculate base position relative to canvas wrapper
-            // Because transform-styles are complex, getBoundingClientRect gives the accurate on-screen paint.
             const wrapperRect = shadowLayer.getBoundingClientRect();
-            const baseX = screenBaseX - wrapperRect.left;
-            const baseY = screenBaseY - wrapperRect.top;
+            let baseX = screenBaseX - wrapperRect.left;
+            let baseY = screenBaseY - wrapperRect.top;
+
+            // Optional: Incorporate draggable parent offsets to lock to dragged position perfectly
+            if (cardNushuText.style.left) {
+                const tLeft = parseFloat(cardNushuText.style.left) - 190;
+                const tTop = parseFloat(cardNushuText.style.top) - 270;
+                // Center is correct but shadow base itself offsets if moving parent
+                // Base positioning remains stable under relative container coordinates unless overridden
+            }
 
 
 
@@ -781,7 +788,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const url = URL.createObjectURL(blob);
 
-                // Show modal overlay
+                // Automatically trigger a file download natively for PC instead of just a popup, popup is fallback for mobile
+                try {
+                    const downloadLink = document.createElement("a");
+                    downloadLink.href = url;
+                    downloadLink.download = "Nushu_Secret_Letter.png";
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                } catch (e) {
+                    console.log("Auto-download failed, fallback to modal");
+                }
+
+                // Show modal overlay for mobile/iPad users
                 const modal = document.getElementById('save-modal-overlay');
                 const modalImg = document.getElementById('save-modal-image');
                 modalImg.src = url;

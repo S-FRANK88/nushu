@@ -106,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ---- Theme Switching Logic ----
     const themeSelector = document.getElementById('theme-selector');
-    const customBgUpload = document.getElementById('custom-bg-upload');
     const bgOctagon = document.getElementById('octagon-bg');
     const textColorPicker = document.getElementById('text-color-picker');
 
@@ -114,10 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const ornamentsGroup = document.querySelectorAll('.card-ornament');
     const frameStyle1 = document.getElementById('card-frame-style1');
     const bgStyle2 = document.getElementById('card-bg-style2');
-    const bgCustom = document.getElementById('card-bg-custom');
-    const bgMask = document.getElementById('card-bg-mask');
-
-    let customImageSrc = '';
 
     // Color Picker Listener
     textColorPicker.addEventListener('input', (e) => {
@@ -126,29 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     themeSelector.addEventListener('change', (e) => {
         const theme = e.target.value;
-        if (theme === 'custom') {
-            customBgUpload.click();
-            return; // Don't apply until file selected
-        }
         applyTheme(theme);
-    });
-
-    customBgUpload.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                customImageSrc = ev.target.result;
-                bgCustom.style.backgroundImage = `url(${customImageSrc})`;
-                applyTheme('custom');
-                // Force selector to show custom
-                themeSelector.value = 'custom';
-            };
-            reader.readAsDataURL(file);
-        } else {
-            // Cancelled, reset dropdown
-            themeSelector.value = letterCard.dataset.currentTheme || 'default';
-        }
     });
 
     function applyTheme(theme) {
@@ -157,9 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ornamentsGroup.forEach(el => el.classList.add('hidden'));
         frameStyle1.classList.add('hidden');
         bgStyle2.classList.add('hidden');
-        bgCustom.classList.add('hidden');
         bgOctagon.classList.add('hidden');
-        bgMask.classList.add('hidden');
 
         // Setup according to theme
         if (theme === 'default') {
@@ -173,10 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (theme === 'style2') {
             document.getElementById('card-front').style.backgroundColor = 'transparent';
             bgStyle2.classList.remove('hidden');
-        } else if (theme === 'custom') {
-            document.getElementById('card-front').style.backgroundColor = '#2b3e61'; // Base fallback
-            bgCustom.classList.remove('hidden');
-            bgMask.classList.remove('hidden'); // Mask to improve text readability
         }
     }
 
@@ -586,9 +553,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const theme = letterCard.dataset.currentTheme || 'default';
 
             // === Layer 1: Card background ===
-            if (theme === 'style2' || theme === 'custom') {
+            if (theme === 'style2') {
                 try {
-                    const bgImgSrc = theme === 'style2' ? 'images/bg-style2.jpg' : customImageSrc;
+                    const bgImgSrc = 'images/bg-style2.jpg';
                     const bImg = await loadImage(bgImgSrc);
                     // Draw cover
                     cc.save();
@@ -601,10 +568,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const nW = bImg.width * r;
                     const nH = bImg.height * r;
                     cc.drawImage(bImg, (cardW - nW) / 2, (cardH - nH) / 2, nW, nH);
-                    if (theme === 'custom') {
-                        cc.fillStyle = 'rgba(0, 0, 0, 0.4)';
-                        cc.fillRect(0, 0, cardW, cardH);
-                    }
                     cc.restore();
                 } catch (e) {
                     console.error("Failed to draw full background, falling back to blue:", e);

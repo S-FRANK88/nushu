@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Initial theme layout
-    applyTheme('default');
+    applyTheme('style1');
 
 
     // ---- Font Size Controls (no character limit) ----
@@ -425,21 +425,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const spanEl = nushuSpans[i];
             if (!spanEl) return;
 
-            // Get actual on-screen location of the Nüshu character
-            const spanRect = spanEl.getBoundingClientRect();
+            // Get local position within cardFront using offset hierarchy (fixes iOS 3D bounding rect bugs)
+            let offsetLeft = 0;
+            let offsetTop = 0;
+            let node = spanEl;
+            while (node && node !== cardFront) {
+                offsetLeft += node.offsetLeft;
+                offsetTop += node.offsetTop;
+                node = node.offsetParent;
+            }
+            offsetLeft += spanEl.offsetWidth / 2;
+            offsetTop += spanEl.offsetHeight / 2;
 
-            // Center point of the actual character
-            const screenBaseX = spanRect.left + spanRect.width / 2;
-            const screenBaseY = spanRect.top + spanRect.height / 2;
+            const baseX = offsetLeft;
+            const baseY = offsetTop;
 
-            // Position relative to the card container, unscaled
-            const baseX = (screenBaseX - cardRect.left) / scaleX;
-            const baseY = (screenBaseY - cardRect.top) / scaleY;
+            const lightXLocal = parseFloat(cardFront.style.getPropertyValue('--light-x')) || 0;
+            const lightYLocal = parseFloat(cardFront.style.getPropertyValue('--light-y')) || 0;
 
-            // Distance from mouse to the character (on screen)
-            const dx = screenBaseX - mouseX;
-            const dy = screenBaseY - mouseY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
+            const dxLocal = baseX - lightXLocal;
+            const dyLocal = baseY - lightYLocal;
+
+            const screenDx = dxLocal * scaleX;
+            const screenDy = dyLocal * scaleY;
+            const dist = Math.sqrt(screenDx * screenDx + screenDy * screenDy);
 
             // Proximity: how "lit" this character is (1 = right under candle, 0 = out of range)
             let proximity = Math.max(0, 1 - (dist / maxDist));
@@ -447,8 +456,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Shadow offset: cast away from the light, slightly shifted left
             const stretchFactor = 0.03 + (dist / 3000);
-            const shadowOffsetX = ((dx * stretchFactor) / scaleX) - 12; // Shifted left so it doesn't completely overlap
-            const shadowOffsetY = (dy * stretchFactor) / scaleY;
+            const shadowOffsetX = ((screenDx * stretchFactor) / scaleX) - 12; // Shifted left so it doesn't completely overlap
+            const shadowOffsetY = (screenDy * stretchFactor) / scaleY;
 
             // Final position stays close to the character
             const finalX = baseX + shadowOffsetX;
@@ -479,6 +488,66 @@ document.addEventListener('DOMContentLoaded', () => {
             img.src = src;
         });
     }
+
+    // ---- Draggable Nüshu Text ----
+    let isDraggingText = false;
+    let dragStartX = 0, dragStartY = 0;
+    let initialLeft = 190, initialTop = 270;
+
+    function initTextDrag() {
+        cardNushuText.style.cursor = 'grab';
+
+        const pointerDown = (e) => {
+            if (candleActive) return;
+            isDraggingText = true;
+            cardNushuText.style.cursor = 'grabbing';
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            dragStartX = clientX;
+            dragStartY = clientY;
+
+            // Use logical center or grab the current offset
+            initialLeft = cardNushuText.offsetLeft;
+            initialTop = cardNushuText.offsetTop;
+            // Prevent scrolling on mobile while dragging text
+            if (e.touches && e.cancelable) e.preventDefault();
+        };
+
+        const pointerMove = (e) => {
+            if (!isDraggingText) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            const dx = clientX - dragStartX;
+            const dy = clientY - dragStartY;
+
+            // Normalize drag delta by card scale
+            const cardFront = document.getElementById('card-front');
+            const scaleX = cardFront.getBoundingClientRect().width / cardFront.offsetWidth;
+            const scaleY = cardFront.getBoundingClientRect().height / cardFront.offsetHeight;
+
+            cardNushuText.style.left = (initialLeft + dx / scaleX) + 'px';
+            cardNushuText.style.top = (initialTop + dy / scaleY) + 'px';
+            if (e.cancelable) e.preventDefault();
+        };
+
+        const pointerUp = () => {
+            if (isDraggingText) {
+                isDraggingText = false;
+                cardNushuText.style.cursor = 'grab';
+            }
+        };
+
+        cardNushuText.addEventListener('mousedown', pointerDown);
+        cardNushuText.addEventListener('touchstart', pointerDown, { passive: false });
+
+        document.addEventListener('mousemove', pointerMove);
+        document.addEventListener('touchmove', pointerMove, { passive: false });
+
+        document.addEventListener('mouseup', pointerUp);
+        document.addEventListener('touchend', pointerUp);
+    }
+    initTextDrag();
 
     // ---- Save Card as Image (Pure Canvas Layered Drawing) ----
     btnSave.addEventListener('click', async () => {
@@ -589,6 +658,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 cc.textAlign = 'center';
                 cc.textBaseline = 'middle';
 
+                let textDx = 0, textDy = 0;
+                if (cardNushuText.style.left) {
+                    textDx = parseFloat(cardNushuText.style.left) - 190;
+                    textDy = parseFloat(cardNushuText.style.top) - 270;
+                }
+
                 let charIndex = 0;
                 spans.forEach((span) => {
                     const charText = span.textContent;
@@ -600,9 +675,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const col = Math.floor(charIndex / rowsPerCol);
                     const row = charIndex % rowsPerCol;
 
-                    // Right to left columns
-                    const x = cardW - padRight - (col + 0.5) * step;
-                    const y = padTop + (row + 0.5) * step;
+                    // Right to left columns + draggable offset
+                    const x = cardW - padRight - (col + 0.5) * step + textDx;
+                    const y = padTop + (row + 0.5) * step + textDy;
 
                     // Check if the span uses LiuyeTi
                     const isLiuye = span.style.fontFamily && span.style.fontFamily.includes('LiuyeTi');

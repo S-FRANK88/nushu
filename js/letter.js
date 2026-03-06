@@ -772,8 +772,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // 6. Draw AXSIS logo in bottom-right
             try {
                 const logoImg = await loadImage('images/axsis-logo.png');
-                const logoW = 273 * retina;
-                const logoH = 54 * retina;
+                const logoW = 68 * retina;
+                const logoH = 14 * retina;
                 const logoRightMargin = 54 * retina;
                 const logoX = shareCanvas.width - logoRightMargin - logoW;
                 const logoY = qrY + qrSize - logoH; // Bottom edge aligns with QR bottom

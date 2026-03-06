@@ -432,7 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Shadow offset: cast away from the light, slightly shifted
             const stretchFactor = 0.03 + (dist / 3000);
             const shadowOffsetX = (screenDx * stretchFactor) - 12; // Shifted left so it doesn't completely overlap
-            const shadowOffsetY = (screenDy * stretchFactor);
+            const shadowOffsetY = (screenDy * stretchFactor) - (spanRect.height * 0.45); // Move up by half character height
 
             // Final position stays close to the character
             const finalX = baseX + shadowOffsetX;

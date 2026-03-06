@@ -110,7 +110,7 @@ main.active {
   position: relative;
   z-index: 1;
   width: 280px;
-  height: 420px;
+  height: 460px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -124,7 +124,7 @@ main.active {
 #nushu-wo-text {
   font-family: var(--font-nushu);
   font-size: 220px;
-  line-height: 1.2;
+  line-height: 1.4;
   background: linear-gradient(to bottom,
       #d4a574 0%, #b58d55 15%,
       /* Silk */
@@ -1096,19 +1096,21 @@ main.active {
 
 .exit-candle-btn {
   position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 102;
-  padding: 0.6rem 1.2rem;
+  padding: 0.8rem 1.6rem;
   border: 1px solid rgba(255, 200, 100, 0.3);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.5);
-  color: rgba(255, 200, 100, 0.8);
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 200, 100, 0.9);
   cursor: pointer;
   pointer-events: auto;
   /* Allow clicking through the container's pointer-events: none */
   font-family: var(--font-serif);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Fade out other elements smoothly when in candle mode */

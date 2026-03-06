@@ -14,7 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo(0, 0);
     }
 
-    btnWriteLetter.addEventListener('click', openLetterPage);
+    if (btnWriteLetter) {
+        btnWriteLetter.addEventListener('click', openLetterPage);
+    }
     if (btnWriteLetterHero) {
         btnWriteLetterHero.addEventListener('click', openLetterPage);
     }

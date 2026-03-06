@@ -363,7 +363,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('touchmove', (e) => {
         if (candleActive) {
-            e.preventDefault(); // Prevent scrolling while flashlight is active on mobile
+            if (!e.target.closest('.exit-candle-btn')) {
+                e.preventDefault(); // Prevent scrolling while flashlight is active on mobile
+            }
             if (e.touches.length > 0) {
                 handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
             }
@@ -372,7 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('touchstart', (e) => {
         if (candleActive) {
-            e.preventDefault();
+            if (!e.target.closest('.exit-candle-btn')) {
+                e.preventDefault();
+            }
             if (e.touches.length > 0) {
                 handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
             }

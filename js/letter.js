@@ -237,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (origChar.trim() === '') {
                     const s = document.createElement('span');
                     s.textContent = origChar;
+                    s.dataset.origChar = origChar;
                     cardNushuText.appendChild(s);
                     continue;
                 }
@@ -250,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     s.style.fontFamily = "'LiuyeTi', serif";
                     missingChars.add(origChar);
                 }
+                s.dataset.origChar = origChar;
                 cardNushuText.appendChild(s);
             }
         }
@@ -394,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
         nushuSpans.forEach((span, i) => {
             const shadowChar = document.createElement('span');
             shadowChar.className = 'shadow-char';
-            shadowChar.textContent = text[i] || text[0];
+            shadowChar.textContent = span.dataset.origChar || span.textContent || ' ';
             shadowChar.style.cssText = `
         position: absolute;
         font-family: 'Noto Serif SC', serif;

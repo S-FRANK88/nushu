@@ -124,7 +124,7 @@ main.active {
 #nushu-wo-text {
   font-family: var(--font-nushu);
   font-size: 220px;
-  line-height: 1;
+  line-height: 1.2;
   background: linear-gradient(to bottom,
       #d4a574 0%, #b58d55 15%,
       /* Silk */

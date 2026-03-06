@@ -425,39 +425,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const spanEl = nushuSpans[i];
             if (!spanEl) return;
 
-            // Get local position within cardFront using offset hierarchy (fixes iOS 3D bounding rect bugs)
-            let offsetLeft = 0;
-            let offsetTop = 0;
-            let node = spanEl;
-            while (node && node !== cardFront) {
-                offsetLeft += node.offsetLeft;
-                offsetTop += node.offsetTop;
-                node = node.offsetParent;
-            }
-            offsetLeft += spanEl.offsetWidth / 2;
-            offsetTop += spanEl.offsetHeight / 2;
+            // Get actual on-screen location of the Nüshu character
+            const spanRect = spanEl.getBoundingClientRect();
 
-            const baseX = offsetLeft;
-            const baseY = offsetTop;
+            // Center point of the actual character on screen
+            const screenBaseX = spanRect.left + spanRect.width / 2;
+            const screenBaseY = spanRect.top + spanRect.height / 2;
 
-            const lightXLocal = parseFloat(cardFront.style.getPropertyValue('--light-x')) || 0;
-            const lightYLocal = parseFloat(cardFront.style.getPropertyValue('--light-y')) || 0;
-
-            const dxLocal = baseX - lightXLocal;
-            const dyLocal = baseY - lightYLocal;
-
-            const screenDx = dxLocal * scaleX;
-            const screenDy = dyLocal * scaleY;
+            // Distance from mouse to the character (on screen)
+            const screenDx = screenBaseX - mouseX;
+            const screenDy = screenBaseY - mouseY;
             const dist = Math.sqrt(screenDx * screenDx + screenDy * screenDy);
+
+            // Calculate base position relative to canvas wrapper
+            // Because transform-styles are complex, getBoundingClientRect gives the accurate on-screen paint.
+            const wrapperRect = shadowLayer.getBoundingClientRect();
+            const baseX = screenBaseX - wrapperRect.left;
+            const baseY = screenBaseY - wrapperRect.top;
+
+
 
             // Proximity: how "lit" this character is (1 = right under candle, 0 = out of range)
             let proximity = Math.max(0, 1 - (dist / maxDist));
             proximity = Math.pow(proximity, 1.2);
 
-            // Shadow offset: cast away from the light, slightly shifted left
+            // Shadow offset: cast away from the light, slightly shifted
             const stretchFactor = 0.03 + (dist / 3000);
-            const shadowOffsetX = ((screenDx * stretchFactor) / scaleX) - 12; // Shifted left so it doesn't completely overlap
-            const shadowOffsetY = (screenDy * stretchFactor) / scaleY;
+            const shadowOffsetX = (screenDx * stretchFactor) - 12; // Shifted left so it doesn't completely overlap
+            const shadowOffsetY = (screenDy * stretchFactor);
 
             // Final position stays close to the character
             const finalX = baseX + shadowOffsetX;

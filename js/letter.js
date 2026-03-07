@@ -722,8 +722,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.closePath();
             ctx.clip();
 
-            // 1. Draw dark background
-            ctx.fillStyle = '#0f172a';
+            // 1. Draw background (Customizable from input)
+            const exportBgColor = document.getElementById('export-bg-color-picker') ? document.getElementById('export-bg-color-picker').value : '#0f172a';
+            ctx.fillStyle = exportBgColor;
             ctx.fillRect(0, 0, shareCanvas.width, shareCanvas.height);
 
             // 2. Draw footer background FIRST (so it overlays dark bg correctly at bottom)
